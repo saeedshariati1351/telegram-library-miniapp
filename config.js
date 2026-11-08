@@ -1,2 +1,2 @@
 // تنظیمات مینی‌اپ — نام کاربری ربات برای پیوندهای هم‌رسانی (بدون @)
-window.LIB_CONFIG = { botUsername: '' };
+window.LIB_CONFIG = { botUsername: 'ketabkhaneh_miniapp_bot' };
