@@ -388,8 +388,10 @@
   fetch('data/books.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (raw) {
     DATA = buildData(raw);
     loadSaved(function () {
+      // Telegram launch data arrives in the hash (#tgWebAppData=…); the SDK has already read it.
+      if (!/^#\//.test(location.hash)) history.replaceState(null, '', location.pathname + location.search + '#/');
       var start = tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param;
-      if (start && DATA.byId[start] && !location.hash) history.replaceState(null, '', '#/book/' + start);
+      if (start && DATA.byId[start]) history.replaceState(null, '', '#/book/' + start);
       window.addEventListener('hashchange', route);
       route();
     });
