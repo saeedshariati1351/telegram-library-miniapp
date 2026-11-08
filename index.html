@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>کتابخانه</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="app" aria-live="polite">
+  <div class="loading">در حال بارگذاری کتابخانه…</div>
+</main>
+<nav class="tabbar" aria-label="ناوبری اصلی">
+  <a href="#/" data-tab="home">
+    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6h-6v6H4z"/></svg><span>خانه</span>
+  </a>
+  <a href="#/categories" data-tab="categories">
+    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg><span>دسته‌ها</span>
+  </a>
+  <a href="#/search" data-tab="search">
+    <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><span>جستجو</span>
+  </a>
+  <a href="#/saved" data-tab="saved">
+    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 4h12v16l-6-4-6 4z"/></svg><span>نشان‌شده‌ها</span>
+  </a>
+</nav>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
