@@ -100,7 +100,10 @@
   function loadSaved(cb) {
     try {
       if (tg && tg.CloudStorage && tg.isVersionAtLeast && tg.isVersionAtLeast('6.9')) {
-        tg.CloudStorage.getItem('saved', function (err, v) { try { SAVED = JSON.parse(v || '[]'); } catch (e) { SAVED = []; } cb(); });
+        var done = false;
+        var finish = function (v) { if (done) return; done = true; try { SAVED = JSON.parse(v || '[]'); } catch (e) { SAVED = []; } cb(); };
+        setTimeout(function () { var l = null; try { l = localStorage.getItem('lib_saved'); } catch (e) {} finish(l); }, 1500);
+        tg.CloudStorage.getItem('saved', function (err, v) { finish(err ? null : v); });
         return;
       }
     } catch (e) {}
