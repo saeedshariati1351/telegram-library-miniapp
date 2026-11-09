@@ -80,15 +80,22 @@ def avatar(ch):
         avatars[ch] = m.group(1) if m else ''
     return avatars[ch]
 
+RETRY = 'RETRY'
+
 def post_image(ch, mid):
-    """تصویر پست (عکس یا پیش‌نمایش PDF) از برچسب og:image صفحهٔ تک‌پست؛ تصویر نمایهٔ کانال حساب نمی‌شود."""
+    """تصویر پست از og:image صفحهٔ تک‌پست. None = پست تصویر ندارد؛ RETRY = خطای شبکه، بعداً دوباره."""
     r = get(f'https://t.me/{ch}/{mid}')
     stats['pages'] += 1
-    if r is None: return None
+    if r is None:
+        stats['page_err'] += 1; return RETRY
+    if 'tgme_page' not in r.text:
+        stats['page_odd'] += 1; return RETRY
     m = OG_RE.search(r.text)
-    if not m: return None
+    if not m:
+        stats['no_og'] += 1; return None
     url = m.group(1).replace('&amp;', '&')
-    if url == avatar(ch) or 'telegram.org/img' in url: return None
+    if url == avatar(ch) or 'telegram.org/img' in url:
+        stats['avatar'] += 1; return None
     return url
 
 LOGO_N = 6                      # تصویری که بیش از این تعداد تکرار شود، لوگو/نشان کانال است
@@ -121,22 +128,25 @@ def cleanup_logos():
     return removed
 
 def fetch_img(url, wid):
-    r = get(url, tries=3)
-    if r is None: return False
+    r = get(url, tries=4)
+    if r is None:
+        stats['img_err'] += 1; return RETRY
     try:
         im = Image.open(io.BytesIO(r.content)).convert('RGB')
-        if im.width < 60 or im.height < 60: return False
+        if im.width < 60 or im.height < 60:
+            stats['tiny'] += 1; return False
         h = dhash(im)
         with lock:
             hashes[h] += 1
             if hashes[h] >= LOGO_N: logos.add(h)
-            if h in logos: return False
+            if h in logos:
+                stats['logo'] += 1; return False
         if im.width > WIDTH: im = im.resize((WIDTH, round(im.height * WIDTH / im.width)), Image.LANCZOS)
         os.makedirs(os.path.dirname(out_path(wid)), exist_ok=True)
         im.save(out_path(wid), 'WEBP', quality=QUALITY, method=6)
         return True
     except Exception:
-        return False
+        stats['bad_img'] += 1; return RETRY
 
 def diag(ids):
     rows = {int(r[0]): r for r in list(csv.reader(open(os.path.join(ROOT, 'tools/covers_todo.csv'), encoding='utf-8')))[1:]}
@@ -184,25 +194,29 @@ def main():
             part = todo[k:k + chunk]
             if time.time() - T0 > BUDGET:
                 nxt.extend(part); continue
-            with ThreadPoolExecutor(8) as ex:
+            with ThreadPoolExecutor(4) as ex:
                 urls = list(ex.map(lambda t: post_image(*t[1][0]) if time.time() - T0 < BUDGET else SKIP, part))
             jobs = []
             for (wid, c), url in zip(part, urls):
-                if url is SKIP: nxt.append((wid, c))
+                if url is SKIP or url == RETRY: nxt.append((wid, c))
                 elif url: jobs.append((wid, url, c))
                 elif len(c) > 1: nxt.append((wid, c[1:]))
                 else: failed.add(str(wid))
-            with ThreadPoolExecutor(16) as ex:
+            with ThreadPoolExecutor(6) as ex:
                 for (wid, url, c), ok in zip(jobs, ex.map(lambda j: fetch_img(j[1], j[0]), jobs)):
-                    if ok: saved += 1
+                    if ok == RETRY: nxt.append((wid, c))
+                    elif ok: saved += 1
                     elif len(c) > 1: nxt.append((wid, c[1:]))
                     else: failed.add(str(wid))
-            print(f'round {rnd} | {k + len(part)}/{len(todo)} | pages {stats["pages"]} | saved {saved} | failed {len(failed)} | {int((time.time()-T0)/60)} min', flush=True)
+            print(f'round {rnd} | {k + len(part)}/{len(todo)} | pages {stats["pages"]} | saved {saved} | failed {len(failed)} | {int((time.time()-T0)/60)} min | {dict(stats)}', flush=True)
             if (k // chunk) % 3 == 2:
                 open(fpath, 'w').write('\n'.join(sorted(failed, key=int)))
                 open(LOGOS_PATH, 'w').write('\n'.join(sorted(logos)))
                 write_bitmap(); commit(f'جلد کتاب‌ها: {saved} جلد تازه')
+        if len(nxt) >= len(todo) and rnd > 1:
+            time.sleep(60)
         todo = nxt
+        if rnd >= 6: break
     removed = cleanup_logos()
     open(fpath, 'w').write('\n'.join(sorted(failed, key=int)))
     have = write_bitmap()
