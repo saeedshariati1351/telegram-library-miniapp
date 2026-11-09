@@ -85,7 +85,7 @@
   function hasCover(id) { return CV && id != null && id >= 0 && (CV[id >> 3] >> (id & 7)) & 1; }
   function coverHTML(b, size) {
     var t = b.t, a = b.a, v = volLabel(b.v);
-    var img = hasCover(b.id) ? '<img alt="" loading="lazy" decoding="async" src="covers/' + Math.floor(b.id / 1000) + '/' + b.id + '.webp?v=' + VER + '" onload="this.parentNode.classList.add(\'has-img\')" onerror="this.remove()">' : '';
+    var img = hasCover(b.id) ? '<img alt="" decoding="async" src="covers/' + Math.floor(b.id / 1000) + '/' + b.id + '.webp?v=' + VER + '" onload="this.parentNode.classList.add(\'has-img\')" onerror="this.remove()">' : '';
     return '<div class="cover c-' + size + '" role="img" aria-label="جلد ' + esc(t) + '"><div class="fb" style="background:' + colorFor(t) + '"><i></i><b>' +
       esc(t.length > 48 ? t.slice(0, 46) + '…' : t) + '</b><small>' + esc(v ? v + (a ? ' · ' + a : '') : a) + '</small></div>' + img + '</div>';
   }
