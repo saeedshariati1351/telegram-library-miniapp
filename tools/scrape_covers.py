@@ -118,28 +118,33 @@ def main():
         else: failed.add(str(wid))
     if LIMIT: todo = todo[:LIMIT]
     print(f'total {len(rows)} | todo {len(todo)}', flush=True)
-    rnd = 0
+    SKIP = object()
+    rnd, saved, chunk = 0, 0, 2000
     while todo and time.time() - T0 < BUDGET:
         rnd += 1
         for ch in set(c[0][0] for _, c in todo): avatar(ch)
-        with ThreadPoolExecutor(8) as ex:
-            urls = list(ex.map(lambda t: post_image(*t[1][0]) if time.time() - T0 < BUDGET else None, todo))
-        jobs, nxt = [], []
-        for (wid, c), url in zip(todo, urls):
-            if url: jobs.append((wid, url, c))
-            elif len(c) > 1: nxt.append((wid, c[1:]))
-            elif time.time() - T0 < BUDGET: failed.add(str(wid))
-        print(f'round {rnd}: pages {stats["pages"]} | images found {len(jobs)}', flush=True)
-        done = 0
-        with ThreadPoolExecutor(16) as ex:
-            for (wid, url, c), ok in zip(jobs, ex.map(lambda j: fetch_img(j[1], j[0]), jobs)):
-                if ok:
-                    done += 1
-                    if done % 3000 == 0:
-                        write_bitmap(); commit(f'جلد کتاب‌ها: +{done}'); print(f'  saved {done}', flush=True)
+        nxt = []
+        for k in range(0, len(todo), chunk):
+            part = todo[k:k + chunk]
+            if time.time() - T0 > BUDGET:
+                nxt.extend(part); continue
+            with ThreadPoolExecutor(8) as ex:
+                urls = list(ex.map(lambda t: post_image(*t[1][0]) if time.time() - T0 < BUDGET else SKIP, part))
+            jobs = []
+            for (wid, c), url in zip(part, urls):
+                if url is SKIP: nxt.append((wid, c))
+                elif url: jobs.append((wid, url, c))
                 elif len(c) > 1: nxt.append((wid, c[1:]))
                 else: failed.add(str(wid))
-        print(f'round {rnd}: saved {done}', flush=True)
+            with ThreadPoolExecutor(16) as ex:
+                for (wid, url, c), ok in zip(jobs, ex.map(lambda j: fetch_img(j[1], j[0]), jobs)):
+                    if ok: saved += 1
+                    elif len(c) > 1: nxt.append((wid, c[1:]))
+                    else: failed.add(str(wid))
+            print(f'round {rnd} | {k + len(part)}/{len(todo)} | pages {stats["pages"]} | saved {saved} | failed {len(failed)} | {int((time.time()-T0)/60)} min', flush=True)
+            if (k // chunk) % 3 == 2:
+                open(fpath, 'w').write('\n'.join(sorted(failed, key=int)))
+                write_bitmap(); commit(f'جلد کتاب‌ها: {saved} جلد تازه')
         todo = nxt
     open(fpath, 'w').write('\n'.join(sorted(failed, key=int)))
     have = write_bitmap()
