@@ -6,6 +6,7 @@
   var app = document.getElementById('app');
   var HOME = null;           // data/home.json
   var MANIFEST = null;       // data/s/manifest.json
+  var CV = null;             // bitmap of books with a downloaded cover (data/cv.json)
   var SAVED = [];            // [lite rows]
   var cache = {};
   var VER = (window.LIB_CONFIG && window.LIB_CONFIG.dataVersion) || '1';
@@ -80,11 +81,13 @@
   function L(r) { return { id: r[0], t: r[1], a: r[2] || '', tr: r[3] || '', v: r[4] || '', n: r[5] || 1, y: r[6] || '' }; }
   function volLabel(v) { if (!v) return ''; return /^(جلد|ج\.)/.test(v) ? v : 'جلد ' + v; }
 
-  // covers: default colour cover (Telegram post images can't be embedded directly)
+  // covers: downloaded cover image (covers/<id/1000>/<id>.webp) over a default colour cover
+  function hasCover(id) { return CV && id != null && id >= 0 && (CV[id >> 3] >> (id & 7)) & 1; }
   function coverHTML(b, size) {
     var t = b.t, a = b.a, v = volLabel(b.v);
+    var img = hasCover(b.id) ? '<img alt="" loading="lazy" decoding="async" src="covers/' + Math.floor(b.id / 1000) + '/' + b.id + '.webp?v=' + VER + '" onload="this.parentNode.classList.add(\'has-img\')" onerror="this.remove()">' : '';
     return '<div class="cover c-' + size + '" role="img" aria-label="جلد ' + esc(t) + '"><div class="fb" style="background:' + colorFor(t) + '"><i></i><b>' +
-      esc(t.length > 48 ? t.slice(0, 46) + '…' : t) + '</b><small>' + esc(v ? v + (a ? ' · ' + a : '') : a) + '</small></div></div>';
+      esc(t.length > 48 ? t.slice(0, 46) + '…' : t) + '</b><small>' + esc(v ? v + (a ? ' · ' + a : '') : a) + '</small></div>' + img + '</div>';
   }
 
   // ---------- storage ----------
@@ -202,7 +205,7 @@
   }
   function featCard(id, w) {
     var c = w.c[0], ch = HOME.channels[c.ch] || {};
-    var b = { t: w.t, a: w.a || '', v: w.v || '' };
+    var b = { id: id, t: w.t, a: w.a || '', v: w.v || '' };
     return '<article class="card feat"><div class="feat-top"><a href="#/b/' + id + '">' + coverHTML(b, 'xs').replace('c-xs"', 'c-xs" style="width:84px;height:120px"') + '</a>' +
       '<dl class="kv"><dt>عنوان</dt><dd style="font-weight:700"><a href="#/b/' + id + '" style="color:inherit">' + esc(w.t) + '</a></dd>' +
       (w.a ? '<dt>پدیدآور</dt><dd>' + peopleLinks(w.a) + '</dd>' : '') +
@@ -230,7 +233,7 @@
       var meta = [c0.p, c0.y && fa(c0.y), c0.pg && fa(c0.pg) + ' صفحه'].filter(Boolean).join(' · ');
       var h = bar('<div class="grp"><button class="icon-btn" id="share" aria-label="هم‌رسانی">' + ICON.share + '</button>' +
         '<button class="icon-btn' + (saved ? ' on' : '') + '" id="save" aria-label="' + (saved ? 'برداشتن نشان' : 'نشان کردن') + '">' + ICON.save + '</button></div>');
-      h += '<section class="hero">' + coverHTML({ t: w.t, a: w.a || '', v: w.v || '' }, 'lg') +
+      h += '<section class="hero">' + coverHTML({ id: id, t: w.t, a: w.a || '', v: w.v || '' }, 'lg') +
         '<div style="display:flex;flex-direction:column;gap:6px;align-items:center"><h1>' + esc(w.t) + '</h1>' +
         (w.st ? '<p style="font-size:14px;color:var(--on-bg)">' + esc(w.st) + '</p>' : '') +
         (w.v ? '<p>' + esc(volLabel(w.v)) + '</p>' : '') +
@@ -476,8 +479,9 @@
   setupTelegram();
   // Telegram launch data arrives in the hash (#tgWebAppData=…); the SDK has already read it.
   if (!/^#\//.test(location.hash)) history.replaceState(null, '', location.pathname + location.search + '#/');
-  Promise.all([getJSON('home.json'), getJSON('s/manifest.json')]).then(function (r) {
+  Promise.all([getJSON('home.json'), getJSON('s/manifest.json'), getJSON('cv.json').catch(function () { return null; })]).then(function (r) {
     HOME = r[0]; MANIFEST = r[1] || { split: [] };
+    if (r[2] && r[2].b) { try { var bin = atob(r[2].b); CV = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) CV[i] = bin.charCodeAt(i); } catch (e) { CV = null; } }
     loadSaved(function () {
       var start = tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param;
       if (start && /^b\d+$/.test(start)) history.replaceState(null, '', '#/b/' + start.slice(1));
