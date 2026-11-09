@@ -1,0 +1,4 @@
+tools/*.session
+tools/*.session-journal
+tools/api.txt
+__pycache__/
