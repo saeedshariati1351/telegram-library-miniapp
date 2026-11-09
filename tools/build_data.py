@@ -25,7 +25,28 @@ PAGE = 60            # ردیف در هر صفحهٔ کانال/دسته
 SEARCH_MAX = 6000    # اگر یک پیشوند دوحرفی بیش از این کتاب داشت، سه‌حرفی می‌شود
 
 DEWEY = {'0': 'کلیات', '1': 'فلسفه و روان‌شناسی', '2': 'دین', '3': 'علوم اجتماعی', '4': 'زبان',
-         '5': 'علوم پایه', '6': 'فناوری و علوم کاربردی', '7': 'هنر و سرگرمی', '8': 'ادبیات', '9': 'تاریخ و جغرافیا'}
+         '5': 'علوم پایه', '6': 'فناوری و علوم کاربردی', '7': 'هنر و سرگرمی',
+         'f': 'ادبیات داستانی', 'p': 'شعر و دیوان', '8': 'ادبیات', '9': 'تاریخ و جغرافیا'}
+CAT_ORDER = ['f', 'p', '8', '9', '1', '2', '3', '0', '4', '5', '6', '7']
+POEM_T = re.compile(r'^(دیوان|کلیات اشعار|گزیده اشعار|منتخب اشعار|مجموعه شعر|مجموعه اشعار)|غزلیات|رباعیات|دوبیتی|مثنوی|منظومه|اشعار|شعرهای|دفتر شعر')
+FIC_T = re.compile(r'(^|\s)رمان(\s|$)|مجموعه داستان|داستان کوتاه|داستان‌های کوتاه')
+
+def lit_kind(w, dw, subj):
+    """'p' شعر، 'f' داستانی، '' نامعلوم — بر پایهٔ موضوع فیپا، ردهٔ دیویی، عنوان و برچسب کپشن."""
+    s0 = re.split(r'\s*--\s*', subj or '')[0].replace('\u200c', ' ')
+    if re.search(r'نقد|تفسیر|تاریخ و|سرگذشتنامه|کتابشناسی|واژه‌نامه|واژه نامه', (subj or '').replace('\u200c', ' ')) and not s0.startswith('داستان'):
+        return ''                      # نقد و تحقیق ادبی ← «ادبیات»
+    if s0.startswith('شعر'): return 'p'
+    if s0.startswith('داستان') or s0.startswith('رمان'): return 'f'
+    d = (dw or '').translate(FA_DIGITS).replace(' ', '')
+    m = re.match(r'\[?8فا(\d)', d)
+    if m: return {'1': 'p', '3': 'f'}.get(m.group(1), '')
+    m = re.match(r'\[?8([1-8])([13])(?!\d)|\[?8([1-8])([13])[/.]', d)
+    if m: return 'p' if (m.group(2) or m.group(4)) == '1' else 'f'
+    t = norm(w['t']); tag = (w.get('tag') or '').replace('\u200c', ' ')
+    if POEM_T.search(t) or re.search(r'(^|[#\s،,])شعر', tag): return 'p'
+    if FIC_T.search(t) or re.search(r'(^|[#\s،,])(رمان|داستان)', tag): return 'f'
+    return ''
 STOP = set('و در از به با را که این آن یک یا تا بر برای های ها the of and a an in to on for'.split())
 FA_DIGITS = str.maketrans('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩', '01234567890123456789')
 
@@ -135,6 +156,13 @@ def main(src, out):
             dw = best['f'].get('dw', '').translate(FA_DIGITS)
             mm = re.match(r'\[?\s*(\d)', dw)
             if mm: cat = mm.group(1)
+        bf = (best or {}).get('f', {})
+        if cat == '8':
+            cat = lit_kind(w, bf.get('dw'), bf.get('subj')) or '8'
+        elif cat == '':
+            lk = lit_kind(w, '', '')
+            if lk: cat = lk
+            elif re.search(r'(^|[#\s،,])ادبیات', (w.get('tag') or '')): cat = '8'
         w['k'] = cat
         wf = (best or next((c for c in w['c'] if 'f' in c), {})).get('f')
         if wf:
@@ -225,7 +253,7 @@ def main(src, out):
 
     # home
     featured = [i for i in order if works[i]['c'][0].get('m', 0) == 2 and works[i].get('a') and works[i]['c'][0].get('l')][:60]
-    cats = [{'k': k, 'name': DEWEY[k], 'n': len(per_cat.get(k, []))} for k in sorted(DEWEY)]
+    cats = [{'k': k, 'name': DEWEY[k], 'n': len(per_cat.get(k, []))} for k in CAT_ORDER]
     cats.append({'k': 'x', 'name': 'بدون رده‌بندی', 'n': len(per_cat.get('x', []))})
     dump(f'{out}/home.json', {
         'sample': False, 'built': wb['راهنما و آمار']['B2'].value if 'راهنما و آمار' in wb.sheetnames else '',
