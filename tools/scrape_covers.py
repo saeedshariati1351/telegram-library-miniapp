@@ -70,47 +70,26 @@ def get(url, tries=6):
         time.sleep(3 * (k + 1))
     return None
 
-def scan_channel(ch, ids):
-    """برگشتی: {msg_id: image_url} برای همهٔ پیام‌های خواسته‌شده که تصویر دارند."""
-    found = {}
-    want = sorted(set(ids), reverse=True)
-    i = 0
-    while i < len(want):
-        if time.time() - T0 > BUDGET: break
-        top = want[i]
-        r = get(f'https://t.me/s/{ch}?before={top + 1}')
-        if r is None:
-            i += 1; continue
-        html = r.text
-        parts = MSG_RE.split(html)        # [pre, ch, id, body, ch, id, body, ...]
-        page = {}
-        for k in range(1, len(parts) - 2, 3):
-            mid = int(parts[k + 1]); m = IMG_RE.search(parts[k + 2][:6000])
-            page[mid] = m.group(1) if m else None
-        stats['pages'] += 1
-        if stats['pages'] <= 2:
-            print(f'[debug] {ch} before={top+1}: {len(page)} msgs, imgs={sum(1 for v in page.values() if v)}, html={len(html)}', flush=True)
-            if not any(page.values()):
-                t = re.search(r'<title>(.*?)</title>', html, re.S)
-                print('[debug-title]', t.group(1).strip() if t else '-', '| final url', r.url, flush=True)
-                b = html.find('<body'); print('[debug-body]', re.sub(r'\s+', ' ', re.sub(r'<script.*?</script>', '', html[b:], flags=re.S))[:1500], flush=True)
-                for u in (f'https://t.me/{ch}/{top}', f'https://t.me/{ch}/{top}?embed=1&mode=tme', f'https://t.me/{ch}/{top}?single'):
-                    r2 = get(u)
-                    if r2 is not None:
-                        og = re.search(r'<meta property="og:image" content="([^"]+)"', r2.text)
-                        tw = re.search(r'<meta property="og:description" content="([^"]{0,120})', r2.text)
-                        print('[debug-alt]', u, len(r2.text), 'msgs', len(MSG_RE.findall(r2.text)), 'imgs', len(IMG_RE.findall(r2.text)), 'og', og.group(1)[:90] if og else None, '|', tw.group(1) if tw else '', flush=True)
-                        if 'embed' in u: print('[debug-embed]', re.sub(r'\s+',' ', re.sub(r'<script.*?</script>|<style.*?</style>|<svg.*?</svg>','',r2.text,flags=re.S))[:1200], flush=True)
-        if not page:
-            i += 1; continue
-        lo = min(page)
-        for mid, url in page.items():
-            if url: found[mid] = url
-        while i < len(want) and want[i] >= lo: i += 1
-        if top not in page and lo > top:     # پیام پاک شده یا بیرون از بازه
-            pass
-        time.sleep(0.7)
-    return found
+OG_RE = re.compile(r'<meta property="og:image" content="([^"]+)"')
+avatars = {}
+
+def avatar(ch):
+    if ch not in avatars:
+        r = get(f'https://t.me/{ch}')
+        m = OG_RE.search(r.text) if r is not None else None
+        avatars[ch] = m.group(1) if m else ''
+    return avatars[ch]
+
+def post_image(ch, mid):
+    """تصویر پست (عکس یا پیش‌نمایش PDF) از برچسب og:image صفحهٔ تک‌پست؛ تصویر نمایهٔ کانال حساب نمی‌شود."""
+    r = get(f'https://t.me/{ch}/{mid}')
+    stats['pages'] += 1
+    if r is None: return None
+    m = OG_RE.search(r.text)
+    if not m: return None
+    url = m.group(1).replace('&amp;', '&')
+    if url == avatar(ch) or 'telegram.org/img' in url: return None
+    return url
 
 def fetch_img(url, wid):
     r = get(url, tries=3)
@@ -142,13 +121,11 @@ def main():
     rnd = 0
     while todo and time.time() - T0 < BUDGET:
         rnd += 1
-        by_ch = collections.defaultdict(list)
-        for wid, c in todo: by_ch[c[0][0]].append(c[0][1])
-        with ThreadPoolExecutor(12) as ex:
-            res = dict(zip(by_ch, ex.map(lambda kv: scan_channel(*kv), by_ch.items())))
+        for ch in set(c[0][0] for _, c in todo): avatar(ch)
+        with ThreadPoolExecutor(8) as ex:
+            urls = list(ex.map(lambda t: post_image(*t[1][0]) if time.time() - T0 < BUDGET else None, todo))
         jobs, nxt = [], []
-        for wid, c in todo:
-            url = res.get(c[0][0], {}).get(c[0][1])
+        for (wid, c), url in zip(todo, urls):
             if url: jobs.append((wid, url, c))
             elif len(c) > 1: nxt.append((wid, c[1:]))
             elif time.time() - T0 < BUDGET: failed.add(str(wid))
