@@ -81,9 +81,28 @@ def avatar(ch):
     return avatars[ch]
 
 RETRY = 'RETRY'
+RATE = float(os.environ.get('RATE', '3'))      # درخواست صفحه در ثانیه (کل)
+_next = [0.0]; _miss = collections.deque(maxlen=50)
+
+def throttle():
+    with lock:
+        now = time.time()
+        wait = max(0.0, _next[0] - now)
+        _next[0] = max(now, _next[0]) + 1.0 / RATE
+    if wait: time.sleep(wait)
+
+def backoff(miss):
+    _miss.append(miss)
+    if len(_miss) == _miss.maxlen and sum(_miss) > 25:     # بیشتر پاسخ‌ها بی‌تصویر: تلگرام محدود کرده
+        with lock:
+            _next[0] = time.time() + 90
+            _miss.clear()
+        stats['pauses'] += 1
+        print('  throttled — pausing 90s', flush=True)
 
 def post_image(ch, mid):
     """تصویر پست از og:image صفحهٔ تک‌پست. None = پست تصویر ندارد؛ RETRY = خطای شبکه، بعداً دوباره."""
+    throttle()
     r = get(f'https://t.me/{ch}/{mid}')
     stats['pages'] += 1
     if r is None:
@@ -91,8 +110,9 @@ def post_image(ch, mid):
     if 'tgme_page' not in r.text:
         stats['page_odd'] += 1; return RETRY
     m = OG_RE.search(r.text)
-    if not m:
-        stats['no_og'] += 1; return None
+    if not m:                      # بدون og:image یعنی پاسخ محدودشده؛ پست بی‌تصویر og برابر نمایهٔ کانال دارد
+        stats['no_og'] += 1; backoff(1); return RETRY
+    backoff(0)
     url = m.group(1).replace('&amp;', '&')
     if url == avatar(ch) or 'telegram.org/img' in url:
         stats['avatar'] += 1; return None
@@ -216,7 +236,7 @@ def main():
         if len(nxt) >= len(todo) and rnd > 1:
             time.sleep(60)
         todo = nxt
-        if rnd >= 6: break
+        if rnd >= 12: break
     removed = cleanup_logos()
     open(fpath, 'w').write('\n'.join(sorted(failed, key=int)))
     have = write_bitmap()
