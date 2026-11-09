@@ -26,8 +26,24 @@ SEARCH_MAX = 6000    # اگر یک پیشوند دوحرفی بیش از این 
 
 DEWEY = {'0': 'کلیات', '1': 'فلسفه و روان‌شناسی', '2': 'دین', '3': 'علوم اجتماعی', '4': 'زبان',
          '5': 'علوم پایه', '6': 'فناوری و علوم کاربردی', '7': 'هنر و سرگرمی',
-         'f': 'ادبیات داستانی', 'p': 'شعر و دیوان', '8': 'ادبیات', '9': 'تاریخ و جغرافیا'}
-CAT_ORDER = ['f', 'p', '8', '9', '1', '2', '3', '0', '4', '5', '6', '7']
+         'f': 'ادبیات داستانی', 'p': 'شعر و دیوان', '8': 'ادبیات', '9': 'تاریخ و جغرافیا', 'l': 'فقه و حقوق'}
+CAT_ORDER = ['f', 'p', '8', '9', '1', '2', 'l', '3', '0', '4', '5', '6', '7']
+LAW_S = re.compile(r'^(فقه|اصول فقه|حقوق|قوانین|قانون|آیین دادرسی|احکام|حدود و تعزیرات|قضا|دادرسی|جرم ?شناسی)')
+LAW_T = re.compile(r'(^|\s)(حقوق|فقه|فقهی|قوانین|آیین دادرسی|کیفری|جزای|جزایی|داوری تجاری|ثبت اسناد|اصول فقه|رساله توضیح المسائل|استفتائات|مکاسب|جواهر الکلام|شرح لمعه|حقوقی)(\s|$)')
+LAW_NOT = re.compile(r'قانون جذب|حقوق بگیر|فقه اللغه')
+LAW_CH = {'@ketabedarsihoqoq'}
+
+def is_law(w, dw, subj, chans):
+    d = (dw or '').translate(FA_DIGITS).replace(' ', '').lstrip('[')
+    if re.match(r'34\d', d) or d.startswith('297/3') or d.startswith('297.3'): return True
+    s0 = re.split(r'\s*--\s*', subj or '')[0].replace('\u200c', ' ').strip()
+    if LAW_S.match(s0): return True
+    if dw or subj: return False       # رده‌بندی معتبر دارد و حقوقی نیست
+    t = norm(w['t'])
+    if LAW_NOT.search(t): return False
+    tag = (w.get('tag') or '').replace('\u200c', ' ')
+    if LAW_T.search(t) or re.search(r'(^|[#\s،,])(حقوق|فقه)', tag): return True
+    return any(chans[c['ch']]['handle'] in LAW_CH for c in w['c'])
 POEM_T = re.compile(r'^(دیوان|کلیات اشعار|گزیده اشعار|منتخب اشعار|مجموعه شعر|مجموعه اشعار)|غزلیات|رباعیات|دوبیتی|مثنوی|منظومه|اشعار|شعرهای|دفتر شعر')
 FIC_T = re.compile(r'(^|\s)رمان(\s|$)|مجموعه داستان|داستان کوتاه|داستان‌های کوتاه')
 
@@ -157,6 +173,10 @@ def main(src, out):
             mm = re.match(r'\[?\s*(\d)', dw)
             if mm: cat = mm.group(1)
         bf = (best or {}).get('f', {})
+        if cat in ('2', '3') and is_law(w, bf.get('dw'), bf.get('subj'), chans):
+            cat = 'l'
+        elif cat == '' and is_law(w, '', '', chans):
+            cat = 'l'
         if cat == '8':
             cat = lit_kind(w, bf.get('dw'), bf.get('subj')) or '8'
         elif cat == '':
