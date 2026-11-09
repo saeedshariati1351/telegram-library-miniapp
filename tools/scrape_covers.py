@@ -94,9 +94,13 @@ def scan_channel(ch, ids):
                 t = re.search(r'<title>(.*?)</title>', html, re.S)
                 print('[debug-title]', t.group(1).strip() if t else '-', '| final url', r.url, flush=True)
                 b = html.find('<body'); print('[debug-body]', re.sub(r'\s+', ' ', re.sub(r'<script.*?</script>', '', html[b:], flags=re.S))[:1500], flush=True)
-                r2 = get(f'https://t.me/s/{ch}/{top}')
-                if r2 is not None:
-                    print('[debug-alt]', r2.url, len(r2.text), len(MSG_RE.findall(r2.text)), 'imgs', len(IMG_RE.findall(r2.text)), flush=True)
+                for u in (f'https://t.me/{ch}/{top}', f'https://t.me/{ch}/{top}?embed=1&mode=tme', f'https://t.me/{ch}/{top}?single'):
+                    r2 = get(u)
+                    if r2 is not None:
+                        og = re.search(r'<meta property="og:image" content="([^"]+)"', r2.text)
+                        tw = re.search(r'<meta property="og:description" content="([^"]{0,120})', r2.text)
+                        print('[debug-alt]', u, len(r2.text), 'msgs', len(MSG_RE.findall(r2.text)), 'imgs', len(IMG_RE.findall(r2.text)), 'og', og.group(1)[:90] if og else None, '|', tw.group(1) if tw else '', flush=True)
+                        if 'embed' in u: print('[debug-embed]', re.sub(r'\s+',' ', re.sub(r'<script.*?</script>|<style.*?</style>|<svg.*?</svg>','',r2.text,flags=re.S))[:1200], flush=True)
         if not page:
             i += 1; continue
         lo = min(page)
