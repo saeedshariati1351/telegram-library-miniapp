@@ -138,7 +138,29 @@ def fetch_img(url, wid):
     except Exception:
         return False
 
+def diag(ids):
+    rows = {int(r[0]): r for r in list(csv.reader(open(os.path.join(ROOT, 'tools/covers_todo.csv'), encoding='utf-8')))[1:]}
+    for wid in ids:
+        r = rows[wid]
+        for i in range(1, len(r) - 2, 3):
+            if not r[i]: continue
+            ch, mid = r[i], r[i + 1]
+            try:
+                x = session.get(f'https://t.me/{ch}/{mid}', timeout=30)
+                og = OG_RE.search(x.text); og = og.group(1).replace('&amp;', '&') if og else None
+                desc = re.search(r'<meta property="og:description" content="([^"]{0,80})', x.text)
+                print(f'[diag] {wid} {ch}/{mid} status={x.status_code} len={len(x.text)} avatar={og == avatar(ch)} og={(og or "")[:60]} desc={desc.group(1) if desc else ""}', flush=True)
+                if og and og != avatar(ch):
+                    y = session.get(og, timeout=30)
+                    print(f'   img status={y.status_code} type={y.headers.get("content-type")} bytes={len(y.content)}', flush=True)
+            except Exception as e:
+                print(f'[diag] {wid} {ch}/{mid} EXC {e}', flush=True)
+            time.sleep(1)
+
 def main():
+    dbg = os.path.join(ROOT, 'tools/covers_debug.txt')
+    if os.path.exists(dbg) and open(dbg).read().strip():
+        return diag([int(x) for x in open(dbg).read().split()])
     os.makedirs(OUT, exist_ok=True)
     fpath = os.path.join(OUT, 'failed.txt')
     failed = set(open(fpath).read().split()) if os.path.exists(fpath) else set()
