@@ -433,7 +433,7 @@
   function viewCategories() {
     render('<section class="sec"><div class="sec-head"><h2 style="font-size:22px">دسته‌ها</h2></div><div class="grid">' +
       HOME.cats.map(function (c) { return '<a href="#/k/' + c.k + '"><b>' + esc(c.name) + '</b><span>' + fa(c.n.toLocaleString('en')) + ' کتاب</span></a>'; }).join('') +
-      '</div><p class="muted px" style="margin:0;font-size:12px;line-height:1.8">دسته‌ها از ردهٔ دیویی کتابخانهٔ ملی (فقط تطبیق‌های قطعی و محتمل) ساخته شده‌اند.</p></section>' +
+      '</div><p class="muted px" style="margin:0;font-size:12px;line-height:1.8">دسته‌ها از ردهٔ دیویی و موضوع کتابخانهٔ ملی (تطبیق‌های قطعی و محتمل) ساخته شده‌اند؛ برای «ادبیات داستانی» و «شعر و دیوان» از عنوان و برچسب کانال‌ها هم کمک گرفته شده است.</p></section>' +
       '<section class="sec"><div class="sec-head"><h2>کانال‌ها</h2><a href="#/channels">همه</a></div><div class="card list">' +
       HOME.channels.map(function (c, i) { return [c, i]; }).sort(function (a, b) { return b[0].w - a[0].w; }).slice(0, 8)
         .map(function (x) { return channelRow(x[0], x[1]); }).join('') + '</div></section>', 'categories');
