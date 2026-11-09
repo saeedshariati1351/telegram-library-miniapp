@@ -91,12 +91,46 @@ def post_image(ch, mid):
     if url == avatar(ch) or 'telegram.org/img' in url: return None
     return url
 
+LOGO_N = 6                      # تصویری که بیش از این تعداد تکرار شود، لوگو/نشان کانال است
+hashes = collections.Counter()
+LOGOS_PATH = os.path.join(OUT, 'logos.txt')
+logos = set(open(LOGOS_PATH).read().split()) if os.path.exists(LOGOS_PATH) else set()
+
+def dhash(im):
+    g = im.convert('L').resize((9, 8), Image.BILINEAR)
+    px = list(g.getdata())
+    return '%016x' % sum(1 << i for i in range(64) if px[(i // 8) * 9 + i % 8] > px[(i // 8) * 9 + i % 8 + 1])
+
+def cleanup_logos():
+    """تصاویر پرتکرار را لوگو حساب می‌کند و حذف می‌کند تا دفعهٔ بعد منبع دیگر امتحان شود."""
+    allh = collections.defaultdict(list)
+    for d in os.listdir(OUT):
+        if d.isdigit():
+            for f in os.listdir(os.path.join(OUT, d)):
+                if f.endswith('.webp'):
+                    p = os.path.join(OUT, d, f)
+                    try: allh[dhash(Image.open(p))].append(p)
+                    except Exception: os.remove(p)
+    removed = 0
+    for h, ps in allh.items():
+        if h in logos or len(ps) >= LOGO_N:
+            logos.add(h)
+            for p in ps: os.remove(p); removed += 1
+    open(LOGOS_PATH, 'w').write('\n'.join(sorted(logos)))
+    print(f'logo cleanup: removed {removed}, logo hashes {len(logos)}', flush=True)
+    return removed
+
 def fetch_img(url, wid):
     r = get(url, tries=3)
     if r is None: return False
     try:
         im = Image.open(io.BytesIO(r.content)).convert('RGB')
         if im.width < 60 or im.height < 60: return False
+        h = dhash(im)
+        with lock:
+            hashes[h] += 1
+            if hashes[h] >= LOGO_N: logos.add(h)
+            if h in logos: return False
         if im.width > WIDTH: im = im.resize((WIDTH, round(im.height * WIDTH / im.width)), Image.LANCZOS)
         os.makedirs(os.path.dirname(out_path(wid)), exist_ok=True)
         im.save(out_path(wid), 'WEBP', quality=QUALITY, method=6)
@@ -144,12 +178,14 @@ def main():
             print(f'round {rnd} | {k + len(part)}/{len(todo)} | pages {stats["pages"]} | saved {saved} | failed {len(failed)} | {int((time.time()-T0)/60)} min', flush=True)
             if (k // chunk) % 3 == 2:
                 open(fpath, 'w').write('\n'.join(sorted(failed, key=int)))
+                open(LOGOS_PATH, 'w').write('\n'.join(sorted(logos)))
                 write_bitmap(); commit(f'جلد کتاب‌ها: {saved} جلد تازه')
         todo = nxt
+    removed = cleanup_logos()
     open(fpath, 'w').write('\n'.join(sorted(failed, key=int)))
     have = write_bitmap()
     commit(f'جلد کتاب‌ها: {have} جلد')
-    left = len(todo)
+    left = len(todo) + removed
     print(f'done. covers: {have} | failed: {len(failed)} | left: {left}', flush=True)
     with open(os.environ.get('GITHUB_OUTPUT', '/dev/null'), 'a') as f:
         f.write(f'left={left}\n')
