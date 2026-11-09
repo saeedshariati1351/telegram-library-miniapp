@@ -90,7 +90,13 @@ def scan_channel(ch, ids):
         stats['pages'] += 1
         if stats['pages'] <= 2:
             print(f'[debug] {ch} before={top+1}: {len(page)} msgs, imgs={sum(1 for v in page.values() if v)}, html={len(html)}', flush=True)
-            if not any(page.values()): print('[debug-html]', re.sub(r'\s+', ' ', html[html.find('tgme_widget_message_wrap'):][:2500]), flush=True)
+            if not any(page.values()):
+                t = re.search(r'<title>(.*?)</title>', html, re.S)
+                print('[debug-title]', t.group(1).strip() if t else '-', '| final url', r.url, flush=True)
+                b = html.find('<body'); print('[debug-body]', re.sub(r'\s+', ' ', re.sub(r'<script.*?</script>', '', html[b:], flags=re.S))[:1500], flush=True)
+                r2 = get(f'https://t.me/s/{ch}/{top}')
+                if r2 is not None:
+                    print('[debug-alt]', r2.url, len(r2.text), len(MSG_RE.findall(r2.text)), 'imgs', len(IMG_RE.findall(r2.text)), flush=True)
         if not page:
             i += 1; continue
         lo = min(page)
