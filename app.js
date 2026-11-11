@@ -196,12 +196,38 @@
       '<nav class="chips" aria-label="دسته‌ها">' + h.cats.filter(function (c) { return c.k !== 'x'; }).map(function (c) {
         return '<a class="chip" href="#/k/' + c.k + '">' + esc(c.name) + '</a>';
       }).join('') + '</nav>' +
-      '<section class="sec"><div class="sec-head"><h2>تازه‌ها</h2></div>' + shelf(h.recent) + '</section>' +
+      '<section class="sec"><div class="sec-head"><h2>از هر دسته</h2><a href="#/categories">همهٔ دسته‌ها</a></div><div id="mix">' + shelf(h.recent.slice(0, 12)) + '</div></section>' +
       (feat ? '<section class="sec"><div class="sec-head"><h2>پیشنهاد امروز</h2></div><div id="feat">' + '<div class="card list">' + rowHTML(feat) + '</div></div></section>' : '') +
       '<section class="sec"><div class="sec-head"><h2>مرور بر اساس کانال</h2><a href="#/channels">همهٔ کانال‌ها</a></div><div class="card list">' +
       chans.map(function (x) { return channelRow(x[0], x[1]); }).join('') + '</div></section>';
     var tok = render(html, 'home');
+    randomMix().then(function (items) {
+      if (stale(tok) || !items.length) return;
+      document.getElementById('mix').innerHTML = '<div class="shelf">' + items.map(function (x) {
+        var b = L(x.r);
+        return '<a href="#/b/' + b.id + '">' + coverHTML(b, 'md') + '<span class="t">' + esc(b.t) + '</span>' +
+          '<span class="a" style="color:var(--gold)">' + esc(x.cat.name) + '</span></a>';
+      }).join('') + '</div>';
+    });
     if (feat) getWork(feat[0]).then(function (w) { if (!stale(tok) && w) document.getElementById('feat').innerHTML = featCard(feat[0], w); });
+  }
+  // one random book from each category (prefers books with a cover); new picks on every visit
+  function rnd(n) { return Math.floor(Math.random() * n); }
+  function randomMix() {
+    var cats = HOME.cats.filter(function (c) { return c.k !== 'x' && c.n > 0; });
+    return Promise.all(cats.map(function (c) {
+      var pages = Math.max(1, Math.ceil(c.n / HOME.page));
+      return getJSON('k/' + c.k + '/' + rnd(pages) + '.json').then(function (rows) {
+        if (!rows || !rows.length) return null;
+        var pool = rows.filter(function (r) { return hasCover(r[0]); });
+        if (!pool.length) pool = rows;
+        return { r: pool[rnd(pool.length)], cat: c };
+      }).catch(function () { return null; });
+    })).then(function (list) {
+      list = list.filter(Boolean);
+      for (var i = list.length - 1; i > 0; i--) { var j = rnd(i + 1), t = list[i]; list[i] = list[j]; list[j] = t; }
+      return list;
+    });
   }
   function featCard(id, w) {
     var c = w.c[0], ch = HOME.channels[c.ch] || {};
