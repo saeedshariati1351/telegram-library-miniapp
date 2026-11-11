@@ -10,6 +10,7 @@
   var SAVED = [];            // [lite rows]
   var cache = {};
   var VER = (window.LIB_CONFIG && window.LIB_CONFIG.dataVersion) || '1';
+  var COVERS = (window.LIB_CONFIG && window.LIB_CONFIG.coverBase) || '';
 
   // ---------- helpers ----------
   var FA = '۰۱۲۳۴۵۶۷۸۹';
@@ -85,7 +86,7 @@
   function hasCover(id) { return CV && id != null && id >= 0 && (CV[id >> 3] >> (id & 7)) & 1; }
   function coverHTML(b, size) {
     var t = b.t, a = b.a, v = volLabel(b.v);
-    var img = hasCover(b.id) ? '<img alt="" decoding="async" src="covers/' + Math.floor(b.id / 1000) + '/' + b.id + '.webp?v=' + VER + '" onload="this.parentNode.classList.add(\'has-img\')" onerror="this.remove()">' : '';
+    var img = hasCover(b.id) ? '<img alt="" decoding="async" src="' + COVERS + 'covers/' + Math.floor(b.id / 1000) + '/' + b.id + '.webp?v=' + VER + '" onload="this.parentNode.classList.add(\'has-img\')" onerror="this.remove()">' : '';
     return '<div class="cover c-' + size + '" role="img" aria-label="جلد ' + esc(t) + '"><div class="fb" style="background:' + colorFor(t) + '"><i></i><b>' +
       esc(t.length > 48 ? t.slice(0, 46) + '…' : t) + '</b><small>' + esc(v ? v + (a ? ' · ' + a : '') : a) + '</small></div>' + img + '</div>';
   }
@@ -129,8 +130,8 @@
   function applyScheme() {
     var dark = tg && tg.colorScheme === 'dark';
     document.documentElement.classList.toggle('dark', !!dark);
-    var c = dark ? '#0E1A3D' : '#2346A0';
-    try { tg.setHeaderColor(c); tg.setBackgroundColor(c); tg.setBottomBarColor && tg.setBottomBarColor(dark ? '#182654' : '#FFFDF8'); } catch (e) {}
+    var c = dark ? '#072E33' : '#0E7480';
+    try { tg.setHeaderColor(c); tg.setBackgroundColor(c); tg.setBottomBarColor && tg.setBottomBarColor(dark ? '#0E3F45' : '#FFFDF8'); } catch (e) {}
   }
   function setupTelegram() {
     if (!tg) return;
@@ -191,7 +192,6 @@
     var html = '<header class="top"><div class="brand"><div class="logo">' + ICON.logo + '</div><div><h1>کتابخانه</h1>' +
       '<p>' + fa(h.nworks.toLocaleString('en')) + ' کتاب از ' + fa(h.channels.length) + ' کانال</p></div></div>' +
       '<a class="icon-btn" href="#/saved" aria-label="نشان‌شده‌ها">' + ICON.save + '</a></header>' +
-      '<div class="notice">نسخهٔ آزمایشی — اگر اشکالی دیدید، شناسهٔ کتاب (پایین صفحهٔ هر کتاب) را یادداشت کنید.</div>' +
       '<a class="search" href="#/s" role="search" aria-label="جستجو در کتابخانه">' + ICON.search + '<span style="color:var(--muted);font-size:15px">عنوان، نویسنده، مترجم یا ناشر…</span></a>' +
       '<nav class="chips" aria-label="دسته‌ها">' + h.cats.filter(function (c) { return c.k !== 'x'; }).map(function (c) {
         return '<a class="chip" href="#/k/' + c.k + '">' + esc(c.name) + '</a>';
@@ -479,7 +479,7 @@
   setupTelegram();
   // Telegram launch data arrives in the hash (#tgWebAppData=…); the SDK has already read it.
   if (!/^#\//.test(location.hash)) history.replaceState(null, '', location.pathname + location.search + '#/');
-  Promise.all([getJSON('home.json'), getJSON('s/manifest.json'), getJSON('cv.json').catch(function () { return null; })]).then(function (r) {
+  Promise.all([getJSON('home.json'), getJSON('s/manifest.json'), fetch(COVERS + 'cv.json?v=' + VER).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })]).then(function (r) {
     HOME = r[0]; MANIFEST = r[1] || { split: [] };
     if (r[2] && r[2].b) { try { var bin = atob(r[2].b); CV = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) CV[i] = bin.charCodeAt(i); } catch (e) { CV = null; } }
     loadSaved(function () {
