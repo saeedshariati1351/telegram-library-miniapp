@@ -14,7 +14,7 @@
   data/k/<cat>/<p>.json          کتاب‌های هر دسته (ردهٔ دیویی)، صفحه‌به‌صفحه
   data/qa.json                   گزارش اشکالات داده برای نسخهٔ نهایی
 
-ردیف خلاصه (lite) = [شناسه، عنوان، پدیدآور، مترجم، جلد، تعداد نسخه، سال]
+ردیف خلاصه (lite) = [شناسه، عنوان، پدیدآور، مترجم، جلد، تعداد نسخه، سال، ناشر، دسته، کانال اصلی]
 """
 import json, os, re, sys, shutil, collections, unicodedata
 from openpyxl import load_workbook
@@ -202,8 +202,9 @@ def main(src, out):
             flag('نسخهٔ تکراری در یک کانال', f"{w['t']} | {chans[main['ch']]['name']} | {len(w['c'])}")
 
     def lite(i):
-        w = works[i]
-        return [i, w['t'], w.get('a', ''), w.get('tr', ''), w.get('v', ''), len(w['c']), w.get('y', '')]
+        w = works[i]; c0 = w['c'][0]
+        return [i, w['t'], w.get('a', ''), w.get('tr', ''), w.get('v', ''), len(w['c']), w.get('y', ''),
+                (c0.get('p') or '')[:50], w.get('k', ''), c0['ch']]
 
     if os.path.isdir(out):
         for d in ('w', 's', 'a', 'c', 'k'):

@@ -391,35 +391,118 @@
       return out.map(function (x) { return x[1]; });
     });
   }
+  function yearNum(y) {
+    var m = String(y || '').replace(/[۰-۹]/g, function (d) { return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d); }).match(/\d{4}/);
+    if (!m) return null;
+    var n = +m[0];
+    return n > 1700 ? n - 621 : n;          // میلادی ← تقریبی شمسی
+  }
+  function hasAll(val, q) {
+    var v = ' ' + norm(val) + ' ';
+    return norm(q).split(' ').every(function (w) { return !w || v.indexOf(w) >= 0; });
+  }
+  var lastAdv = null;
+  function parseAdv(str) {
+    var o = { q: '', t: '', a: '', tr: '', p: '', y1: '', y2: '', k: '', ch: '', sort: 'rel', open: false };
+    if (str && str.charAt(0) === '?') {
+      str.slice(1).split('&').forEach(function (kv) {
+        var i = kv.indexOf('='); if (i < 0) return;
+        try { o[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1)); } catch (e) {}
+      });
+      o.open = !!(o.t || o.a || o.tr || o.p || o.y1 || o.y2 || o.k || o.ch);
+    } else if (str) o.q = str;
+    return o;
+  }
   function viewSearch(initial) {
+    var st = initial ? parseAdv(initial) : (lastAdv || parseAdv(''));
+    var catOpts = HOME.cats.filter(function (c) { return c.k !== 'x'; }).map(function (c) {
+      return '<option value="' + c.k + '"' + (st.k === c.k ? ' selected' : '') + '>' + esc(c.name) + '</option>';
+    }).join('');
+    var chOpts = HOME.channels.map(function (c, i) { return [c, i]; }).sort(function (a, b) { return b[0].w - a[0].w; }).map(function (x) {
+      return '<option value="' + x[1] + '"' + (st.ch === String(x[1]) ? ' selected' : '') + '>' + esc(x[0].name) + '</option>';
+    }).join('');
+    function field(id, label, val, extra) {
+      return '<label' + (extra || '') + '><span>' + label + '</span><input id="' + id + '" type="search" autocomplete="off" value="' + esc(val) + '"></label>';
+    }
     var h = '<form class="search" role="search" onsubmit="return false" style="margin-top:4px"><label for="q" class="sr">جستجو در کتابخانه</label>' + ICON.search +
-      '<input id="q" type="search" autocomplete="off" placeholder="عنوان، نویسنده، مترجم یا ناشر…" enterkeyhint="search" value="' + esc(initial || '') + '"></form>' +
+      '<input id="q" type="search" autocomplete="off" placeholder="عنوان، نویسنده، مترجم یا ناشر…" enterkeyhint="search" value="' + esc(st.q) + '"></form>' +
+      '<div class="px"><button type="button" class="adv-toggle" id="advt" aria-expanded="' + st.open + '" aria-controls="adv">جستجوی پیشرفته <span aria-hidden="true">' + (st.open ? '▴' : '▾') + '</span></button></div>' +
+      '<form class="adv" id="adv" onsubmit="return false"' + (st.open ? '' : ' hidden') + '>' +
+      field('ft', 'عنوان', st.t, ' class="full"') + field('fa', 'نویسنده / پدیدآور', st.a) + field('ftr', 'مترجم', st.tr) +
+      field('fp', 'ناشر', st.p, ' class="full"') +
+      '<label><span>سال نشر از</span><input id="fy1" inputmode="numeric" placeholder="۱۳۵۰" value="' + esc(st.y1) + '"></label>' +
+      '<label><span>تا</span><input id="fy2" inputmode="numeric" placeholder="۱۴۰۰" value="' + esc(st.y2) + '"></label>' +
+      '<label><span>دسته</span><select id="fk"><option value="">همهٔ دسته‌ها</option>' + catOpts + '</select></label>' +
+      '<label><span>کانال</span><select id="fch"><option value="">همهٔ کانال‌ها</option>' + chOpts + '</select></label>' +
+      '<label class="full"><span>مرتب‌سازی</span><select id="fs"><option value="rel">مرتبط‌ترین</option><option value="new"' + (st.sort === 'new' ? ' selected' : '') + '>جدیدترین چاپ</option><option value="old"' + (st.sort === 'old' ? ' selected' : '') + '>قدیمی‌ترین چاپ</option><option value="title"' + (st.sort === 'title' ? ' selected' : '') + '>عنوان (الفبایی)</option></select></label>' +
+      '<div class="full adv-actions"><button type="submit" class="primary in-card" id="go">' + ICON.search + 'جستجو</button><button type="button" class="ghost-btn" id="clr">پاک کردن</button></div>' +
+      '</form>' +
       '<section class="sec"><p class="muted px" id="cnt" style="margin:0;font-size:12px"></p><div class="card list" id="res"></div></section>';
     render(h, 'search');
-    var q = document.getElementById('q'), res = document.getElementById('res'), cnt = document.getElementById('cnt');
+    var $ = function (id) { return document.getElementById(id); };
+    var res = $('res'), cnt = $('cnt'), adv = $('adv');
     var timer, seq = 0, LIMIT = 80;
+    function read() {
+      return { q: $('q').value, t: $('ft').value, a: $('fa').value, tr: $('ftr').value, p: $('fp').value,
+        y1: $('fy1').value, y2: $('fy2').value, k: $('fk').value, ch: $('fch').value, sort: $('fs').value, open: !adv.hidden };
+    }
     function show(rows, n) {
       res.innerHTML = rows.slice(0, n).map(function (r) { return rowHTML(r); }).join('') +
         (rows.length > n ? '<button class="ghost-btn" id="more" style="margin:12px auto;display:flex">نمایش بیشتر</button>' : '');
-      var m = document.getElementById('more');
+      var m = $('more');
       if (m) m.onclick = function () { show(rows, n + LIMIT); };
     }
+    function hint(t) { cnt.textContent = ''; res.innerHTML = '<div class="empty" style="color:var(--muted)">' + t + '</div>'; }
     function run() {
-      var v = q.value, my = ++seq;
-      try { history.replaceState(null, '', '#/s/' + encodeURIComponent(v)); } catch (e) {}
-      if (!norm(v)) { cnt.textContent = ''; res.innerHTML = '<div class="empty" style="color:var(--muted)">نام کتاب، نویسنده، مترجم یا ناشر را بنویسید.</div>'; return; }
+      var f = read(), my = ++seq; lastAdv = f;
+      var qs = ['q', 't', 'a', 'tr', 'p', 'y1', 'y2', 'k', 'ch'].filter(function (k) { return f[k]; })
+        .map(function (k) { return k + '=' + encodeURIComponent(f[k]); });
+      if (f.sort !== 'rel') qs.push('sort=' + f.sort);
+      try { history.replaceState(null, '', '#/s/' + (qs.length ? '?' + qs.join('&') : '')); } catch (e) {}
+      var words = [f.q, f.t, f.a, f.tr, f.p].join(' ');
+      if (!norm(words)) {
+        if (f.k || f.ch) {
+          var link = f.k ? '#/k/' + f.k : '#/c/' + f.ch;
+          return hint('برای جستجو دست‌کم یک کلمه در یکی از کادرها بنویسید، یا <a href="' + link + '" style="color:var(--accent)">همهٔ کتاب‌های این ' + (f.k ? 'دسته' : 'کانال') + '</a> را ببینید.');
+        }
+        return hint('نام کتاب، نویسنده، مترجم یا ناشر را بنویسید. برای جستجوی دقیق‌تر، «جستجوی پیشرفته» را باز کنید.');
+      }
       cnt.textContent = 'در حال جستجو…';
-      doSearch(v).then(function (rows) {
+      doSearch(words).then(function (rows) {
         if (my !== seq) return;
-        rows = rows || [];
+        var y1 = yearNum(f.y1), y2 = yearNum(f.y2);
+        rows = (rows || []).filter(function (r) {
+          if (f.t && !hasAll(r[1], f.t)) return false;
+          if (f.a && !hasAll(r[2], f.a)) return false;
+          if (f.tr && !hasAll(r[3], f.tr)) return false;
+          if (f.p && !hasAll(r[7] || '', f.p)) return false;
+          if (f.k && (r[8] || '') !== f.k) return false;
+          if (f.ch && String(r[9]) !== f.ch) return false;
+          if (y1 || y2) { var y = yearNum(r[6]); if (!y || (y1 && y < y1) || (y2 && y > y2)) return false; }
+          return true;
+        });
+        if (f.sort === 'new' || f.sort === 'old') {
+          var d = f.sort === 'new' ? -1 : 1;
+          rows.sort(function (a, b) { return d * ((yearNum(a[6]) || (d < 0 ? 0 : 9999)) - (yearNum(b[6]) || (d < 0 ? 0 : 9999))); });
+        } else if (f.sort === 'title') rows.sort(function (a, b) { return a[1].localeCompare(b[1], 'fa'); });
         cnt.textContent = rows.length ? fa(rows.length.toLocaleString('en')) + ' نتیجه' : '';
-        if (!rows.length) { res.innerHTML = '<div class="empty" style="color:var(--muted)">چیزی پیدا نشد.</div>'; return; }
+        if (!rows.length) return hint('چیزی پیدا نشد. کلمه‌ها یا فیلترها را کمتر کنید.');
         show(rows, LIMIT);
       }).catch(function () { if (my === seq) { cnt.textContent = ''; res.innerHTML = failed(); } });
     }
-    q.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(run, 300); });
+    function later() { clearTimeout(timer); timer = setTimeout(run, 350); }
+    $('q').addEventListener('input', later);
+    ['ft', 'fa', 'ftr', 'fp', 'fy1', 'fy2'].forEach(function (id) { $(id).addEventListener('input', later); });
+    ['fk', 'fch', 'fs'].forEach(function (id) { $(id).addEventListener('change', run); });
+    adv.addEventListener('submit', function (e) { e.preventDefault(); run(); try { document.activeElement.blur(); } catch (x) {} });
+    $('clr').onclick = function () { ['q', 'ft', 'fa', 'ftr', 'fp', 'fy1', 'fy2'].forEach(function (id) { $(id).value = ''; }); $('fk').value = ''; $('fch').value = ''; $('fs').value = 'rel'; run(); };
+    $('advt').onclick = function () {
+      adv.hidden = !adv.hidden; this.setAttribute('aria-expanded', String(!adv.hidden));
+      this.querySelector('span').textContent = adv.hidden ? '▾' : '▴';
+      if (!adv.hidden) $('ft').focus();
+    };
     run();
-    if (!initial) setTimeout(function () { q.focus(); }, 60);
+    if (!st.q && !st.open) setTimeout(function () { $('q').focus(); }, 60);
   }
 
   // ---------- paged lists ----------
@@ -496,6 +579,7 @@
       case 'k': return viewCat(p[1]);
       case 'categories': return viewCategories();
       case 's': return viewSearch(rest);
+      case 'search': return viewSearch('');
       case 'saved': return viewSaved();
       default: return viewMissing();
     }
