@@ -586,6 +586,18 @@
   }
 
   // ---------- boot ----------
+  // auto-update: if a newer build is published, reload once with a fresh URL (bypasses Telegram's WebView cache)
+  (function () {
+    var build = (window.LIB_CONFIG && window.LIB_CONFIG.build) || '';
+    fetch('version.txt?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (v) {
+      v = (v || '').trim();
+      if (!v || v === build) return;
+      var key = 'lib_reload_' + v, done = false;
+      try { done = sessionStorage.getItem(key); sessionStorage.setItem(key, '1'); } catch (e) {}
+      if (done) return;
+      location.replace(location.pathname + '?b=' + encodeURIComponent(v) + location.hash);
+    }).catch(function () {});
+  })();
   setupTelegram();
   // Telegram launch data arrives in the hash (#tgWebAppData=…); the SDK has already read it.
   if (!/^#\//.test(location.hash)) history.replaceState(null, '', location.pathname + location.search + '#/');
