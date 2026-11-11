@@ -196,7 +196,7 @@
       '<nav class="chips" aria-label="دسته‌ها">' + h.cats.filter(function (c) { return c.k !== 'x'; }).map(function (c) {
         return '<a class="chip" href="#/k/' + c.k + '">' + esc(c.name) + '</a>';
       }).join('') + '</nav>' +
-      '<section class="sec"><div class="sec-head"><h2>از هر دسته</h2><a href="#/categories">همهٔ دسته‌ها</a></div><div id="mix">' + shelf(h.recent.slice(0, 12)) + '</div></section>' +
+      '<section class="sec"><div class="sec-head"><h2>گشتی در قفسه‌ها</h2><a href="#/categories">همهٔ دسته‌ها</a></div><div id="mix">' + shelf(h.recent.slice(0, 12)) + '</div></section>' +
       (feat ? '<section class="sec"><div class="sec-head"><h2>پیشنهاد امروز</h2></div><div id="feat">' + '<div class="card list">' + rowHTML(feat) + '</div></div></section>' : '') +
       '<section class="sec"><div class="sec-head"><h2>مرور بر اساس کانال</h2><a href="#/channels">همهٔ کانال‌ها</a></div><div class="card list">' +
       chans.map(function (x) { return channelRow(x[0], x[1]); }).join('') + '</div></section>';
