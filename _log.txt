@@ -1,0 +1,19 @@
+ghaem init True https://ghaemiyeh.com/livewire/update True
+ghaem page 2 1000 True
+ghaem page 3 2000 True
+ghaem page 4 3000 True
+ghaem page 5 4000 True
+ghaem page 6 5000 True
+ghaem page 7 6000 True
+ghaem page 8 7000 True
+ghaem page 9 8000 True
+ghaem page 10 9000 True
+ghaem page 11 10000 True
+ghaem page 12 11000 True
+ghaem page 13 12000 True
+ghaem page 14 13000 True
+ghaem page 15 14000 True
+ghaem page 16 15000 True
+ghaem page 17 16000 True
+ghaem page 18 16881 False
+ghaem total 16881
