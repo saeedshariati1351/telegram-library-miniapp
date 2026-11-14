@@ -1,0 +1,40 @@
+hathi file hathi_full_20261101.txt.gz 1232643243
+hathi rows 18095
+gallica ERR ara 1
+gallica ERR per 1
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+ERR https://www.googleapis.com/books/v1/volumes 429
+google 0
