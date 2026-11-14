@@ -11,7 +11,7 @@ if uri.startswith('/'): uri = 'https://ghaemiyeh.com' + uri
 snap = None
 for m in re.finditer(r'wire:snapshot="([^"]+)"', h):
     s = H.unescape(m.group(1))
-    if 'category-page' in s: snap = s; break
+    if 'components.category-page' in json.loads(s)['memo']['name']: snap = s; break
 log('ghaem init', bool(csrf), uri, bool(snap))
 def call(snapshot, updates, calls):
     body = {'_token': csrf.group(1), 'components': [{'snapshot': snapshot, 'updates': updates, 'calls': calls}]}
