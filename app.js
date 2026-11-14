@@ -13,6 +13,8 @@
   var CFG = window.LIB_CONFIG || {};
   var COVER_BASES = CFG.coverBases || (CFG.coverBase ? [CFG.coverBase] : ['']);   // shard = id % COVER_BASES.length
   var SEARCH = CFG.searchBase || 'data/';
+  var OB = CFG.onlineBase || '';   // online-library data repo (works from ONLINE.base, libraries ch >= ONLINE.choff)
+  var ONLINE = null, OMAN = null;
 
   // ---------- helpers ----------
   var FA = '۰۱۲۳۴۵۶۷۸۹';
@@ -58,13 +60,29 @@
     p.catch(function () { delete cache[url]; });
     return p;
   }
+  function isOnl(id) { return !!(ONLINE && id >= ONLINE.base); }
+  function chan(i) { i = +i; return (ONLINE && i >= ONLINE.choff ? ONLINE.libs[i - ONLINE.choff] : HOME.channels[i]) || {}; }
+  function xcu(u) { if (!u || !ONLINE || u.charAt(2) !== ':') return u || ''; var p = ONLINE.cup[u.slice(0, 3)]; return p ? p + u.slice(3) : u; }
   function getWork(id) {
+    if (isOnl(id)) {
+      var o = id - ONLINE.base;
+      return getJSON('w/' + Math.floor(o / ONLINE.shard) + '.json', OB).then(function (arr) { return arr && arr[o % ONLINE.shard]; });
+    }
     var sh = HOME.shard;
     return getJSON('w/' + Math.floor(id / sh) + '.json').then(function (arr) { return arr && arr[id % sh]; });
   }
+  // a person page merges the Telegram index and the online-library index
   function getPerson(name) {
-    var n = norm(name);
-    return getJSON('a/' + (fnv(n) % HOME.ashards) + '.json').then(function (d) { return d && d[n]; });
+    var n = norm(name), h = fnv(n);
+    var a = getJSON('a/' + (h % HOME.ashards) + '.json').then(function (d) { return d && d[n]; });
+    var b = ONLINE ? getJSON('a/' + (h % ONLINE.ashards) + '.json', OB).then(function (d) { return d && d[n]; }, function () { return null; }) : Promise.resolve(null);
+    return Promise.all([a, b]).then(function (r) {
+      var x = r[0], y = r[1];
+      if (!x || !y) return x || y;
+      var seen = {}, uniq = function (rows) { return rows.filter(function (q) { if (seen[q[0]]) return false; seen[q[0]] = 1; return true; }); };
+      var o = uniq(x.o.concat(y.o)), rr = uniq(x.r.concat(y.r));
+      return { n: x.n, o: o, r: rr, no: x.no + y.no - (x.o.length + y.o.length - o.length), nr: x.nr + y.nr - (x.r.length + y.r.length - rr.length) };
+    });
   }
 
   var ICON = {
@@ -83,7 +101,7 @@
   };
 
   // lite row: [id, title, author, translator, volume, copies, year]
-  function L(r) { return { id: r[0], t: r[1], a: r[2] || '', tr: r[3] || '', v: r[4] || '', n: r[5] || 1, y: r[6] || '', cu: r[10] || '' }; }
+  function L(r) { return { id: r[0], t: r[1], a: r[2] || '', tr: r[3] || '', v: r[4] || '', n: r[5] || 1, y: r[6] || '', cu: xcu(r[10]) }; }
   // online libraries (v4): a copy whose link is a web page, not a Telegram post
   function isWeb(c) { return !!(c && (c.web || (c.l && !/^https?:\/\/t\.me\//i.test(c.l)))); }
   function readLabel(c, ch) { return !c.l ? 'پیوند عمومی ندارد' : isWeb(c) ? 'خواندن در ' + (ch.name || 'کتابخانه') : 'خواندن در تلگرام'; }
@@ -93,14 +111,18 @@
     w.c.forEach(function (c) { if (!c.l) return; if (isWeb(c)) { if (!web) web = c; } else if (!tg) tg = c; });
     var cls = 'primary' + (inCard ? ' in-card' : '');
     if (!tg && !web) return '<button class="' + cls + '" disabled>' + ICON.tg + 'پیوند عمومی ندارد</button>';
-    var wch = web ? HOME.channels[web.ch] || {} : null;
+    var wch = web ? chan(web.ch) : null;
     var webBtn = web ? '<button class="' + cls + ' web" data-open="' + esc(web.l) + '" aria-label="خواندن در ' + esc(wch.name || 'کتابخانهٔ آنلاین') + '">' + ICON.web +
       '<span>' + (tg ? esc(wch.name || 'کتابخانهٔ آنلاین') : 'خواندن در ' + esc(wch.name || 'کتابخانهٔ آنلاین')) + '</span></button>' : '';
     var tgBtn = tg ? '<button class="' + cls + '" data-open="' + esc(tg.l) + '">' + ICON.tg + 'خواندن در تلگرام</button>' : '';
     return tg && web ? '<div class="read-row">' + tgBtn + webBtn + '</div>' : (tgBtn || webBtn);
   }
-  function webCover(w) { for (var i = 0; i < w.c.length; i++) if (w.c[i].cu) return w.c[i].cu; return ''; }
-  function onlineChans() { return HOME.channels.map(function (c, i) { return [c, i]; }).filter(function (x) { return x[0].web; }).sort(function (a, b) { return b[0].w - a[0].w; }); }
+  function webCover(w) { for (var i = 0; i < w.c.length; i++) if (w.c[i].cu) return xcu(w.c[i].cu); return ''; }
+  function onlineChans() {
+    var a = HOME.channels.map(function (c, i) { return [c, i]; }).filter(function (x) { return x[0].web; });
+    if (ONLINE) a = a.concat(ONLINE.libs.map(function (c, i) { return [c, ONLINE.choff + i]; }));
+    return a.sort(function (x, y) { return y[0].w - x[0].w; });
+  }
   function tgChans() { return HOME.channels.map(function (c, i) { return [c, i]; }).filter(function (x) { return !x[0].web; }).sort(function (a, b) { return b[0].w - a[0].w; }); }
   function volLabel(v) { if (!v) return ''; return /^(جلد|ج\.)/.test(v) ? v : 'جلد ' + v; }
 
@@ -182,7 +204,8 @@
     return '<a class="row" href="#/b/' + b.id + '">' + coverHTML(b, 'xs') +
       '<div class="grow"><span class="nm" style="font-weight:700;font-size:15px">' + esc(b.t) + '</span>' +
       (sub ? '<span class="sub">' + esc(sub) + '</span>' : '') + (meta ? '<span class="sub">' + esc(meta) + '</span>' : '') +
-      (b.n > 1 ? '<span class="badge">' + fa(b.n) + ' نسخه در کانال‌ها</span>' : '') + '</div>' + ICON.chev + '</a>';
+      (b.n > 1 || (ONLINE && r[9] >= ONLINE.choff) ? '<div style="display:flex;gap:6px;flex-wrap:wrap">' + (b.n > 1 ? '<span class="badge">' + fa(b.n) + ' نسخه</span>' : '') +
+        (ONLINE && r[9] >= ONLINE.choff ? '<span class="badge">' + esc(chan(r[9]).name || 'کتابخانهٔ آنلاین') + '</span>' : '') + '</div>' : '') + '</div>' + ICON.chev + '</a>';
   }
   function bar(extra) {
     return '<div class="bar"><a class="icon-btn" href="#/" data-back aria-label="بازگشت">' + ICON.back + '</a>' + (extra || '') + '</div>';
@@ -214,7 +237,7 @@
     var feat = h.featured.length ? h.featured[day % h.featured.length] : null;
     var chans = tgChans().slice(0, 6), onl = onlineChans();
     var html = '<header class="top"><div class="brand"><div class="logo">' + ICON.logo + '</div><div><h1>کتابخانه</h1>' +
-      '<p>' + fa(h.nworks.toLocaleString('en')) + ' کتاب از ' + fa(h.channels.length - onl.length) + ' کانال' + (onl.length ? ' و ' + fa(onl.length) + ' کتابخانهٔ آنلاین' : '') + '</p></div></div>' +
+      '<p>' + fa((h.nworks + (ONLINE ? ONLINE.nworks : 0)).toLocaleString('en')) + ' کتاب از ' + fa(tgChans().length) + ' کانال' + (onl.length ? ' و ' + fa(onl.length) + ' کتابخانهٔ آنلاین' : '') + '</p></div></div>' +
       '<a class="icon-btn" href="#/saved" aria-label="نشان‌شده‌ها">' + ICON.save + '</a></header>' +
       '<a class="search" href="#/s" role="search" aria-label="جستجو در کتابخانه">' + ICON.search + '<span style="color:var(--muted);font-size:15px">عنوان، نویسنده، مترجم یا ناشر…</span></a>' +
       '<nav class="chips" aria-label="دسته‌ها">' + h.cats.filter(function (c) { return c.k !== 'x'; }).map(function (c) {
@@ -256,7 +279,7 @@
     });
   }
   function featCard(id, w) {
-    var c = w.c[0], ch = HOME.channels[c.ch] || {};
+    var c = w.c[0], ch = chan(c.ch);
     var b = { id: id, t: w.t, a: w.a || '', v: w.v || '', cu: webCover(w) };
     return '<article class="card feat"><div class="feat-top"><a href="#/b/' + id + '">' + coverHTML(b, 'xs').replace('c-xs"', 'c-xs" style="width:84px;height:120px"') + '</a>' +
       '<dl class="kv"><dt>عنوان</dt><dd style="font-weight:700"><a href="#/b/' + id + '" style="color:inherit">' + esc(w.t) + '</a></dd>' +
@@ -278,7 +301,7 @@
     getWork(id).then(function (w) {
       if (stale(tok)) return;
       if (!w) return render(bar() + '<div class="empty">این کتاب پیدا نشد.</div>', null, true);
-      var c0 = w.c[0], ch0 = HOME.channels[c0.ch] || {};
+      var c0 = w.c[0], ch0 = chan(c0.ch);
       var f = w.f || null, fm = w.fm || 0;
       var cu = webCover(w), web0 = isWeb(c0);
       var lite = [id, w.t, w.a || '', w.tr || '', w.v || '', w.c.length, w.y || '', c0.p || '', w.k || '', c0.ch, cu];
@@ -304,7 +327,7 @@
         h += '<section class="sec"><div class="px" style="display:flex;flex-direction:column;gap:4px"><h2>نسخه‌های دیگر (' + fa(alts.length) + ')</h2>' +
           '<p class="muted" style="margin:0;font-size:13px;line-height:1.7">همین کتاب در کانال‌ها و کتابخانه‌های آنلاین دیگر. اگر پیوند اصلی باز نشد، از این‌ها استفاده کنید.</p></div>' +
           '<div class="card list">' + alts.slice(0, 30).map(function (a) {
-            var ch = HOME.channels[a.ch] || {};
+            var ch = chan(a.ch);
             var diff = (a.p && c0.p && a.p !== c0.p) || (a.y && c0.y && a.y !== c0.y);
             var same = a.ch === c0.ch;
             var aw = isWeb(a);
@@ -330,8 +353,8 @@
           (f && fm === 0 ? '<div class="notice">این رکورد فقط از روی عنوان پیدا شده و ممکن است مربوط به کتاب یا چاپ دیگری باشد.</div>' : '') +
           '<dl class="card rec">' + rec.map(function (x) { return '<div><dt>' + x[0] + '</dt><dd>' + esc(x[1]) + '</dd></div>'; }).join('') + '</dl>';
         var subj = f && f.subj ? f.subj.split(/\s*[؛|]\s*/).filter(Boolean).slice(0, 6) : [];
-        var cat = HOME.cats.filter(function (c) { return c.k === w.k; })[0];
-        if (subj.length || cat) h += '<div class="tags">' + (cat ? '<a class="tag" href="#/k/' + cat.k + '" style="background:var(--gold);color:var(--on-gold)">' + esc(cat.name) + '</a>' : '') +
+        var onl = isOnl(id), cat = (onl ? ONLINE.cats : HOME.cats).filter(function (c) { return c.k === w.k; })[0];
+        if (subj.length || cat) h += '<div class="tags">' + (cat ? '<a class="tag" href="#/' + (onl ? 'ko' : 'k') + '/' + cat.k + '" style="background:var(--gold);color:var(--on-gold)">' + esc(cat.name) + '</a>' : '') +
           subj.map(function (s) { var q = s.split('--')[0].trim(); return '<a class="tag" href="#/s/' + encodeURIComponent(q) + '">' + esc(s) + '</a>'; }).join('') + '</div>';
         h += '</section>';
       }
@@ -380,18 +403,18 @@
   }
 
   // ---------- search ----------
-  function shardKey(tk) {
-    var p2 = tk.slice(0, 2);
-    return MANIFEST.split.indexOf(p2) >= 0 && tk.length > 2 ? tk.slice(0, 3) : p2;
-  }
   function shardFile(key) {
     var s = 'x'; for (var i = 0; i < key.length; i++) s += key.charCodeAt(i).toString(16) + '-';
     return 's/' + s + '.json';
   }
-  function doSearch(q) {
-    var words = norm(q).split(' ').filter(function (w) { return w.length >= 2 && !STOP[w]; });
-    if (!words.length) return Promise.resolve(null);
-    return Promise.all(words.map(function (wd) { return getJSON(shardFile(shardKey(wd)), SEARCH); })).then(function (shards) {
+  function shardKey(tk, man) {
+    var p2 = tk.slice(0, 2);
+    return man.split.indexOf(p2) >= 0 && tk.length > 2 ? tk.slice(0, 3) : p2;
+  }
+  // one index (Telegram books or online libraries): scored [score, lite] pairs
+  function searchIndex(q, words, base, man) {
+    if (!words.length) return Promise.resolve([]);
+    return Promise.all(words.map(function (wd) { return getJSON(shardFile(shardKey(wd, man)), base); })).then(function (shards) {
       var lite = {}, sets = [];
       shards.forEach(function (sh, k) {
         var wd = words[k], ids = {};
@@ -404,16 +427,30 @@
         }
         sets.push(ids);
       });
-      var base = sets[0], out = [];
-      Object.keys(base).forEach(function (i) {
+      var out = [], nq = norm(q);
+      Object.keys(sets[0]).forEach(function (i) {
         var sc = 0;
         for (var k = 0; k < sets.length; k++) { if (!sets[k][i]) return; sc += sets[k][i]; }
-        var r = lite[i], tn = norm(r[1]);
-        if (tn === norm(q)) sc += 20; else if (tn.indexOf(norm(q)) === 0) sc += 8;
+        var r = lite[i]; if (!r) return;
+        var tn = norm(r[1]);
+        if (tn === nq) sc += 20; else if (tn.indexOf(nq) === 0) sc += 8;
         words.forEach(function (wd) { if ((' ' + tn + ' ').indexOf(' ' + wd) >= 0) sc += 3; });
         sc += Math.min(r[5] || 1, 5) * 0.3;
         out.push([sc, r]);
       });
+      return out;
+    });
+  }
+  function doSearch(q) {
+    var words = norm(q).split(' ').filter(function (w) { return w.length >= 2 && !STOP[w]; });
+    if (!words.length) return Promise.resolve(null);
+    var jobs = [searchIndex(q, words, SEARCH, MANIFEST)];
+    if (ONLINE && OMAN) {
+      var ow = words.filter(function (w) { return ONLINE.stop.indexOf(w) < 0 && !/^\d+$/.test(w); });
+      jobs.push(searchIndex(q, ow, OB, OMAN).catch(function () { return []; }));
+    }
+    return Promise.all(jobs).then(function (r) {
+      var out = r[0].concat(r[1] || []);
       out.sort(function (a, b) { return b[0] - a[0] || a[1][1].length - b[1][1].length; });
       return out.map(function (x) { return x[1]; });
     });
@@ -445,7 +482,7 @@
     var catOpts = HOME.cats.filter(function (c) { return c.k !== 'x'; }).map(function (c) {
       return '<option value="' + c.k + '"' + (st.k === c.k ? ' selected' : '') + '>' + esc(c.name) + '</option>';
     }).join('');
-    var chOpts = HOME.channels.map(function (c, i) { return [c, i]; }).sort(function (a, b) { return b[0].w - a[0].w; }).map(function (x) {
+    var chOpts = tgChans().concat(ONLINE ? ONLINE.libs.map(function (c, i) { return [c, ONLINE.choff + i]; }) : []).map(function (x) {
       return '<option value="' + x[1] + '"' + (st.ch === String(x[1]) ? ' selected' : '') + '>' + esc(x[0].name) + '</option>';
     }).join('');
     function field(id, label, val, extra) {
@@ -460,7 +497,7 @@
       '<label><span>سال نشر از</span><input id="fy1" inputmode="numeric" placeholder="۱۳۵۰" value="' + esc(st.y1) + '"></label>' +
       '<label><span>تا</span><input id="fy2" inputmode="numeric" placeholder="۱۴۰۰" value="' + esc(st.y2) + '"></label>' +
       '<label><span>دسته</span><select id="fk"><option value="">همهٔ دسته‌ها</option>' + catOpts + '</select></label>' +
-      '<label><span>کانال</span><select id="fch"><option value="">همهٔ کانال‌ها</option>' + chOpts + '</select></label>' +
+      '<label><span>کانال / کتابخانه</span><select id="fch"><option value="">همهٔ کانال‌ها و کتابخانه‌ها</option>' + chOpts + '</select></label>' +
       '<label class="full"><span>مرتب‌سازی</span><select id="fs"><option value="rel">مرتبط‌ترین</option><option value="new"' + (st.sort === 'new' ? ' selected' : '') + '>جدیدترین چاپ</option><option value="old"' + (st.sort === 'old' ? ' selected' : '') + '>قدیمی‌ترین چاپ</option><option value="title"' + (st.sort === 'title' ? ' selected' : '') + '>عنوان (الفبایی)</option></select></label>' +
       '<div class="full adv-actions"><button type="submit" class="primary in-card" id="go">' + ICON.search + 'جستجو</button><button type="button" class="ghost-btn" id="clr">پاک کردن</button></div>' +
       '</form>' +
@@ -533,8 +570,8 @@
   }
 
   // ---------- paged lists ----------
-  function viewPaged(title, sub, dir, total, tab, extraTop) {
-    var page = 0, pages = Math.ceil(total / HOME.page);
+  function viewPaged(title, sub, dir, total, tab, extraTop, base) {
+    var page = 0, pages = Math.ceil(total / (base ? ONLINE.page : HOME.page));
     var h = bar() + '<section class="sec"><div class="sec-head"><h2 style="font-size:22px">' + esc(title) + '</h2><span class="muted" style="font-size:13px">' + fa(total.toLocaleString('en')) + ' کتاب</span></div>' +
       (sub ? '<p class="muted px" style="margin:0;font-size:12px">' + esc(sub) + '</p>' : '') + (extraTop || '') +
       '<div class="card list" id="list"></div><button class="ghost-btn" id="more" style="margin:0 auto;display:none;color:var(--gold);border-color:var(--gold)">نمایش بیشتر</button></section>';
@@ -542,7 +579,7 @@
     var list = document.getElementById('list'), more = document.getElementById('more');
     function load() {
       more.disabled = true; more.textContent = 'در حال بارگذاری…';
-      getJSON(dir + '/' + page + '.json').then(function (rows) {
+      getJSON(dir + '/' + page + '.json', base).then(function (rows) {
         if (stale(tok)) return;
         list.insertAdjacentHTML('beforeend', (rows || []).map(function (r) { return rowHTML(r); }).join(''));
         page++;
@@ -553,13 +590,19 @@
     if (total) load(); else list.innerHTML = '<div class="empty" style="color:var(--muted)">کتابی نیست.</div>';
   }
   function viewChannel(i) {
-    var ch = HOME.channels[+i]; if (!ch) return viewMissing();
-    viewPaged(ch.name, [ch.handle, fa(ch.n.toLocaleString('en')) + (ch.web ? ' کتاب · کتابخانهٔ آنلاین (نمونه)' : ' فایل PDF')].filter(Boolean).join(' · '), 'c/' + i, ch.w, null,
-      ch.link ? '<div class="px"><button class="primary" data-open="' + esc(ch.link) + '">' + (ch.web ? ICON.ext + 'رفتن به سایت کتابخانه' : ICON.tg + 'رفتن به کانال') + '</button></div>' : '');
+    i = +i; var ch = chan(i); if (!ch.name) return viewMissing();
+    var onl = ONLINE && i >= ONLINE.choff;
+    viewPaged(ch.name, [ch.handle, fa(ch.n.toLocaleString('en')) + (ch.web ? ' کتاب · کتابخانهٔ آنلاین' : ' فایل PDF')].filter(Boolean).join(' · '), 'c/' + (onl ? i - ONLINE.choff : i), ch.w, null,
+      ch.link ? '<div class="px"><button class="primary" data-open="' + esc(ch.link) + '">' + (ch.web ? ICON.ext + 'رفتن به سایت کتابخانه' : ICON.tg + 'رفتن به کانال') + '</button></div>' : '', onl ? OB : undefined);
   }
   function viewCat(k) {
     var c = HOME.cats.filter(function (x) { return x.k === k; })[0]; if (!c) return viewMissing();
-    viewPaged(c.name, k === 'x' ? 'کتاب‌هایی که ردهٔ دیویی قطعی ندارند' : 'بر پایهٔ ردهٔ دیویی فیپا', 'k/' + k, c.n, 'categories');
+    viewPaged(c.name, k === 'x' ? 'کتاب‌هایی که ردهٔ دیویی قطعی ندارند' : 'بر پایهٔ ردهٔ دیویی فیپا', 'k/' + k, c.n, 'categories',
+      ONLINE ? '<div class="px"><a class="ghost-btn" href="#/ko/' + k + '" style="color:var(--gold);border-color:var(--gold)">' + ICON.web + 'همین دسته در کتابخانه‌های آنلاین</a></div>' : '');
+  }
+  function viewCatOnline(k) {
+    var c = ONLINE && ONLINE.cats.filter(function (x) { return x.k === k; })[0]; if (!c) return viewMissing();
+    viewPaged(c.name, 'کتابخانه‌های آنلاین · دسته از روی موضوع و برچسب هر کتابخانه', 'k/' + k, c.n, 'categories', '', OB);
   }
   function viewChannels() {
     var on = onlineChans();
@@ -571,7 +614,9 @@
   function viewCategories() {
     render('<section class="sec"><div class="sec-head"><h2 style="font-size:22px">دسته‌ها</h2></div><div class="grid">' +
       HOME.cats.map(function (c) { return '<a href="#/k/' + c.k + '"><b>' + esc(c.name) + '</b><span>' + fa(c.n.toLocaleString('en')) + ' کتاب</span></a>'; }).join('') +
-      '</div><p class="muted px" style="margin:0;font-size:12px;line-height:1.8">دسته‌ها از ردهٔ دیویی و موضوع کتابخانهٔ ملی (تطبیق‌های قطعی و محتمل) ساخته شده‌اند؛ برای «ادبیات داستانی»، «شعر و دیوان» و «فقه و حقوق» از عنوان و برچسب کانال‌ها هم کمک گرفته شده است.</p></section>' +
+      '</div>' + (ONLINE ? '<div class="sec-head" style="margin-top:8px"><h2>دسته‌ها در کتابخانه‌های آنلاین</h2></div><div class="grid">' +
+        ONLINE.cats.map(function (c) { return '<a href="#/ko/' + c.k + '"><b>' + esc(c.name) + '</b><span>' + fa(c.n.toLocaleString('en')) + ' کتاب</span></a>'; }).join('') + '</div>' : '') +
+      '<p class="muted px" style="margin:0;font-size:12px;line-height:1.8">دسته‌ها از ردهٔ دیویی و موضوع کتابخانهٔ ملی (تطبیق‌های قطعی و محتمل) ساخته شده‌اند؛ برای «ادبیات داستانی»، «شعر و دیوان» و «فقه و حقوق» از عنوان و برچسب کانال‌ها هم کمک گرفته شده است.</p></section>' +
       '<section class="sec"><div class="sec-head"><h2>کانال‌ها</h2><a href="#/channels">همه</a></div><div class="card list">' +
       tgChans().slice(0, 8)
         .map(function (x) { return channelRow(x[0], x[1]); }).join('') + '</div></section>', 'categories');
@@ -606,6 +651,7 @@
       case 'c': return viewChannel(p[1]);
       case 'channels': return viewChannels();
       case 'k': return viewCat(p[1]);
+      case 'ko': return viewCatOnline(p[1]);
       case 'categories': return viewCategories();
       case 's': return viewSearch(rest);
       case 'search': return viewSearch('');
@@ -630,12 +676,14 @@
   setupTelegram();
   // Telegram launch data arrives in the hash (#tgWebAppData=…); the SDK has already read it.
   if (!/^#\//.test(location.hash)) history.replaceState(null, '', location.pathname + location.search + '#/');
-  Promise.all([getJSON('home.json'), getJSON('s/manifest.json', SEARCH),
+  var onlineP = OB ? Promise.all([getJSON('home.json', OB), getJSON('s/manifest.json', OB)]).catch(function () { return [null, null]; }) : Promise.resolve([null, null]);
+  Promise.all([getJSON('home.json'), getJSON('s/manifest.json', SEARCH), onlineP,
     Promise.all(COVER_BASES.map(function (base) {
       return fetch(base + 'cv.json?v=' + VER).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
     }))]).then(function (r) {
     HOME = r[0]; MANIFEST = r[1] || { split: [] };
-    CV = r[2].map(function (j) {
+    if (r[2][0] && r[2][0].libs) { ONLINE = r[2][0]; OMAN = r[2][1] || { split: [] }; }
+    CV = r[3].map(function (j) {
       if (!j || !j.b) return null;
       try { var bin = atob(j.b), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; } catch (e) { return null; }
     });

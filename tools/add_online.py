@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""افزودن کتاب‌های کتابخانه‌های آنلاین (نسخهٔ ۴) به داده‌های ساخته‌شدهٔ مینی‌اپ.
+"""[کنار گذاشته شده — به جای آن tools/build_online.py]
+افزودن کتاب‌های کتابخانه‌های آنلاین (نسخهٔ ۴) به داده‌های ساخته‌شدهٔ مینی‌اپ.
 
     python3 tools/add_online.py merged.xlsx data/ ../telegram-library-search/s/
 
