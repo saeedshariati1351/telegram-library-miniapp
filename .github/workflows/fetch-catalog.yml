@@ -1,0 +1,34 @@
+name: دریافت فایل اکسل از گوگل‌درایو
+on:
+  push:
+    branches: [main]
+    paths: ['tools/catalog_request.txt']
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          sparse-checkout: tools
+      - name: download
+        run: |
+          ID=$(head -1 tools/catalog_request.txt | tr -d '[:space:]')
+          curl -sSL -o catalog.xlsx "https://drive.usercontent.google.com/download?id=${ID}&export=download&confirm=t"
+          ls -la catalog.xlsx
+          file catalog.xlsx
+          python3 -c "import zipfile;zipfile.ZipFile('catalog.xlsx').testzip();print('zip ok')"
+      - name: split and push to branch catalog-upload
+        run: |
+          mkdir up && split -b 90m -d catalog.xlsx up/catalog.xlsx.part
+          sha256sum catalog.xlsx > up/SHA256
+          cd up
+          git init -q -b catalog-upload
+          git config user.name "library-bot"; git config user.email "github-actions[bot]@users.noreply.github.com"
+          for f in catalog.xlsx.part* SHA256; do git add "$f"; git commit -qm "$f"; done
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}"
+          git push -f -q origin catalog-upload
+          echo pushed
