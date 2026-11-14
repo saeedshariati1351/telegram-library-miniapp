@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>مكتبة الثقلين — مكتبة شيعية إلكترونية لكتب أهل البيت (ع)</title>
+  <meta name="description" content="مكتبة الثقلين: مكتبة شيعية إلكترونية تضم أكثر من ٩٠٠٠ كتاب في القرآن والتفسير والحديث والعقائد والفقه والسيرة والأدعية. اقرأ الكتب وابحث في نصوصها من أي جهاز.">
+  <link rel="canonical" href="https://thaqalaynlibrary.com/">
+  <!-- Link previews (WhatsApp, Telegram, X, Facebook). Book and reader pages get their own values from server/render.py. -->
+  <meta property="og:site_name" content="مكتبة الثقلين">
+  <meta property="og:locale" content="ar_AR">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="مكتبة الثقلين — مكتبة شيعية إلكترونية لكتب أهل البيت (ع)">
+  <meta property="og:description" content="مكتبة الثقلين: مكتبة شيعية إلكترونية تضم أكثر من ٩٠٠٠ كتاب في القرآن والتفسير والحديث والعقائد والفقه والسيرة والأدعية. اقرأ الكتب وابحث في نصوصها من أي جهاز.">
+  <meta property="og:url" content="https://thaqalaynlibrary.com/">
+  <meta property="og:image" content="https://thaqalaynlibrary.com/img/share.jpg?v=fe1a09b2">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="مكتبة الثقلين — مكتبة شيعية إلكترونية">
+  <meta name="twitter:card" content="summary_large_image">
+  <!-- For Google: the site's name, logo and search. -->
+  <script type="application/ld+json">
+  {"@context": "https://schema.org", "@graph": [
+    {"@type": "WebSite", "@id": "https://thaqalaynlibrary.com/#website", "url": "https://thaqalaynlibrary.com/",
+     "name": "مكتبة الثقلين", "alternateName": ["Thaqalayn Library", "مكتبة الثقلين الإلكترونية"], "inLanguage": "ar",
+     "publisher": {"@id": "https://thaqalaynlibrary.com/#org"},
+     "potentialAction": {"@type": "SearchAction", "target": "https://thaqalaynlibrary.com/search?q={q}", "query-input": "required name=q"}},
+    {"@type": "Organization", "@id": "https://thaqalaynlibrary.com/#org", "name": "مكتبة الثقلين", "alternateName": "Thaqalayn Library",
+     "url": "https://thaqalaynlibrary.com/", "logo": "https://thaqalaynlibrary.com/img/icons/icon-512.png?v=f8f00d32"}
+  ]}
+  </script>
+  <meta name="theme-color" content="#E8D8C3">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/img/icons/favicon-32.png?v=d09c337d" type="image/png" sizes="32x32">
+  <link rel="icon" href="/img/icons/favicon-16.png?v=048f26c6" type="image/png" sizes="16x16">
+  <link rel="apple-touch-icon" href="/img/icons/apple-touch-icon.png?v=244d85ce">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preload" href="/fonts/GESSTwoLight-Light.otf" as="font" type="font/otf" crossorigin>
+  <link rel="stylesheet" href="/css/app.css?v=20261107184003">
+  <script>
+    // Apply the saved book font before the first paint.
+    try {
+      localStorage.removeItem("thq.theme"); // the dark theme was removed
+      const f = JSON.parse(localStorage.getItem("thq.readFont") || "null");
+      if (f) document.documentElement.dataset.readFont = f;
+      const t = JSON.parse(localStorage.getItem("thq.readTheme") || "null");
+      if (t && t !== "original") document.documentElement.dataset.readTheme = t;
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">تخطَّ إلى المحتوى</a>
+
+  <header class="site-header" id="site-header">
+    <div class="container header-row">
+      <a class="brand" href="/" aria-label="مكتبة الثقلين — الرئيسية">
+        <img class="brand-logo" src="/img/logo-wordmark.png?v=f178ca72" alt="مكتبة الثقلين" width="960" height="391">
+      </a>
+      <nav class="main-nav" aria-label="التنقل الرئيسي" data-nav></nav>
+      <div class="header-actions">
+        <a class="btn header-account" href="/account" data-tip="تسجيل الدخول"><svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>تسجيل الدخول</span></a>
+        <a class="btn header-feedback" href="/feedback" data-icon-start="edit" data-tip="رأيك يهمنا — أرسل اقتراحًا أو أبلغ عن خطأ">رأيك يهمنا</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Phones and tablets: no top bar; this floating button opens the side menu. -->
+  <button class="menu-fab" type="button" data-action="menu" aria-label="القائمة" data-tip="القائمة — الأقسام وصفحات الموقع" aria-controls="site-drawer" aria-expanded="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6.5h16"/><path d="M9 12h11"/><path d="M6 17.5h14"/></svg>
+  </button>
+
+  <nav class="book-tabs" aria-label="الكتب المفتوحة" data-book-tabs hidden></nav>
+
+  <main id="main" tabindex="-1"></main>
+
+  <footer class="site-footer" id="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-about">
+        <a href="/" aria-label="مكتبة الثقلين — الرئيسية"><img class="footer-logo" src="/img/logo-wordmark.png?v=f178ca72" alt="مكتبة الثقلين" width="960" height="391" loading="lazy"></a>
+        <p>مكتبة رقمية تجمع تراث أهل البيت (عليهم السلام): كتب القرآن والحديث والعقائد والفقه والسيرة والأدعية، تقرؤها وتبحث في نصوصها من أي جهاز.</p>
+      </div>
+      <nav class="footer-col" aria-labelledby="footer-links">
+        <h2 id="footer-links">روابط سريعة</h2>
+        <ul data-footer-links></ul>
+      </nav>
+      <nav class="footer-col" aria-labelledby="footer-cats">
+        <h2 id="footer-cats">أقسام مختارة</h2>
+        <ul data-footer-cats></ul>
+      </nav>
+      <div class="footer-col footer-app">
+        <h2>تطبيق المكتبة</h2>
+        <p>مكتبة الثقلين على هاتفك، آيفون وأندرويد.</p>
+        <div class="store-badges" data-footer-stores></div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container footer-bottom-row">
+        <p>© <span class="num" data-year></span> مكتبة الثقلين. جميع الحقوق محفوظة.</p>
+        <p>النصوص تُعرض كما وردت في طبعاتها المعتمدة.</p>
+      </div>
+    </div>
+  </footer>
+
+  <div class="drawer" id="site-drawer" data-drawer>
+    <div class="drawer-scrim" data-close-drawer></div>
+    <aside class="drawer-panel" role="dialog" aria-modal="true" aria-label="القائمة">
+      <div class="drawer-head">
+        <a href="/" aria-label="مكتبة الثقلين — الرئيسية"><img class="drawer-logo" src="/img/logo-wordmark.png?v=f178ca72" alt="مكتبة الثقلين" width="960" height="391"></a>
+        <button class="icon-btn" type="button" data-close-drawer aria-label="إغلاق القائمة" data-icon="x"></button>
+      </div>
+      <a class="drawer-account" href="/account" data-drawer-account></a>
+      <nav class="drawer-groups" aria-label="التنقل الرئيسي" data-drawer-nav></nav>
+      <p class="drawer-title">أقسام مختارة</p>
+      <nav class="drawer-cats" aria-label="أقسام مختارة" data-drawer-cats></nav>
+      <a class="drawer-feedback" href="/feedback" data-drawer-feedback></a>
+    </aside>
+  </div>
+
+  <div class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script type="importmap">{
+ "imports": {
+  "/admin/admin.js": "/admin/admin.js?v=20261107184003",
+  "/js/account.js": "/js/account.js?v=20261107184003",
+  "/js/api.js": "/js/api.js?v=20261107184003",
+  "/js/app.js": "/js/app.js?v=20261107184003",
+  "/js/blockmap.js": "/js/blockmap.js?v=20261107184003",
+  "/js/chat-widget.js": "/js/chat-widget.js?v=20261107184003",
+  "/js/clear-button.js": "/js/clear-button.js?v=20261107184003",
+  "/js/config.js": "/js/config.js?v=20261107184003",
+  "/js/feedback-labels.js": "/js/feedback-labels.js?v=20261107184003",
+  "/js/highlights.js": "/js/highlights.js?v=20261107184003",
+  "/js/hl-store.js": "/js/hl-store.js?v=20261107184003",
+  "/js/icons.js": "/js/icons.js?v=20261107184003",
+  "/js/nav.js": "/js/nav.js?v=20261107184003",
+  "/js/notes.js": "/js/notes.js?v=20261107184003",
+  "/js/posts.js": "/js/posts.js?v=20261107184003",
+  "/js/sessions.js": "/js/sessions.js?v=20261107184003",
+  "/js/store.js": "/js/store.js?v=20261107184003",
+  "/js/sync.js": "/js/sync.js?v=20261107184003",
+  "/js/tooltip.js": "/js/tooltip.js?v=20261107184003",
+  "/js/ui.js": "/js/ui.js?v=20261107184003",
+  "/js/views/account.js": "/js/views/account.js?v=20261107184003",
+  "/js/views/authors.js": "/js/views/authors.js?v=20261107184003",
+  "/js/views/book.js": "/js/views/book.js?v=20261107184003",
+  "/js/views/catalog.js": "/js/views/catalog.js?v=20261107184003",
+  "/js/views/chat.js": "/js/views/chat.js?v=20261107184003",
+  "/js/views/feedback.js": "/js/views/feedback.js?v=20261107184003",
+  "/js/views/home.js": "/js/views/home.js?v=20261107184003",
+  "/js/views/lists.js": "/js/views/lists.js?v=20261107184003",
+  "/js/views/news.js": "/js/views/news.js?v=20261107184003",
+  "/js/views/notes.js": "/js/views/notes.js?v=20261107184003",
+  "/js/views/reader.js": "/js/views/reader.js?v=20261107184003",
+  "/js/views/saved.js": "/js/views/saved.js?v=20261107184003",
+  "/js/views/search.js": "/js/views/search.js?v=20261107184003",
+  "/js/views/sessions.js": "/js/views/sessions.js?v=20261107184003"
+ }
+}</script>
+  <script type="module" src="/js/app.js?v=20261107184003"></script>
+</body>
+</html>

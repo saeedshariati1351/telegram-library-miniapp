@@ -1,0 +1,28 @@
+ERR https://shiaonlinelibrary.com/ HTTPSConnectionPool(host='shiaonlinelibrary.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='shiaonlinelibrary.com', port=443): Failed to resolve 'shiaonlinelibrary.com' ([Errno -3] Temporary failure in name resolution)"))
+probe shiaonline_home 0 0 
+ERR https://shiaonlinelibrary.com/الكتب HTTPSConnectionPool(host='shiaonlinelibrary.com', port=443): Max retries exceeded with url: /%D8%A7%D9%84%D9%83%D8%AA%D8%A8 (Caused by NameResolutionError("HTTPSConnection(host='shiaonlinelibrary.com', port=443): Failed to resolve 'shiaonlinelibrary.com' ([Errno -3] Temporary failure in name resolution)"))
+probe shiaonline_books 0 0 
+probe thaq_home 200 10170 https://thaqalaynlibrary.com/
+probe thaq_books 200 22522 https://thaqalaynlibrary.com/books
+ERR https://library.tebyan.net/fa HTTPSConnectionPool(host='library.tebyan.net', port=443): Max retries exceeded with url: /fa (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1011)')))
+probe tebyan 0 0 
+ERR https://dl.nlai.ir/ HTTPSConnectionPool(host='dl.nlai.ir', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='dl.nlai.ir', port=443) at 0x76fd1175adb0>, 'Connection to dl.nlai.ir timed out. (connect timeout=40)'))
+probe nlai 0 0 
+ERR https://dlib.ical.ir/ HTTPSConnectionPool(host='dlib.ical.ir', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnection(host='dlib.ical.ir', port=443): Failed to resolve 'dlib.ical.ir' ([Errno -2] Name or service not known)"))
+probe ical 0 0 
+probe ical2 403 10827 https://ical.ir/
+ERR https://digital.aqr.ir/ 504
+probe aqr 0 0 
+ERR https://utdlib.ut.ac.ir/ HTTPSConnectionPool(host='utdlib.ut.ac.ir', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='utdlib.ut.ac.ir', port=443) at 0x76fd1175b9e0>, 'Connection to utdlib.ut.ac.ir timed out. (connect timeout=40)'))
+probe ut 0 0 
+ERR https://pdf.al-mostafa.com/ HTTPSConnectionPool(host='pdf.al-mostafa.com', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)')))
+probe mostafa 0 0 
+ERR http://www.al-mostafa.com/ HTTPSConnectionPool(host='www.al-mostafa.com', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1011)')))
+probe mostafa2 0 0 
+probe alislam 403 5587 https://www.al-islam.org/library
+probe alislam_sitemap 403 5599 https://www.al-islam.org/sitemap.xml
+probe ketabnak_books 404 2139 https://www.ketabnak.com/books
+probe iweb_book 200 182230 https://www.islamweb.net/ar/library/index.php?page=bookcontents&ID=1
+probe manhal_rel 200 40353 https://manhal.alkafeel.net/ar/reach_releases
+probe noor_sitemap 404 32942 https://noorlib.ir/sitemap.xml
+probe noor_robots 200 555 https://noorlib.ir/robots.txt
