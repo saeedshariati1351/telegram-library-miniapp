@@ -1,0 +1,45 @@
+base (['6af45896a35c6cb3a166cadf', '66a88d7187c55ca3e12e5699'], 206831)
+https://waqfeya.net/books?page=2 (['6af45896a35c6cb3a166cadf', '66a88d7187c55ca3e12e5699'], 206870)
+https://waqfeya.net/books?p=2 (['6af45896a35c6cb3a166cadf', '66a88d7187c55ca3e12e5699'], 206861)
+https://waqfeya.net/books/page/2 ([], 43404)
+https://waqfeya.net/books?pageNumber=2 (['6af45896a35c6cb3a166cadf', '66a88d7187c55ca3e12e5699'], 206901)
+https://waqfeya.net/books?skip=30 (['6af45896a35c6cb3a166cadf', '66a88d7187c55ca3e12e5699'], 206873)
+https://waqfeya.net/books?offset=30 (['6af45896a35c6cb3a166cadf', '66a88d7187c55ca3e12e5699'], 206879)
+https://waqfeya.net/api/books?page=2 None
+https://waqfeya.net/api/books?page=2&limit=100 None
+ERR https://api.waqfeya.net/books?page=2 HTTPSConnectionPool(host='api.waqfeya.net', port=443): Max retries exceeded with url: /books?page=2 (Caused by NameResolutionError("HTTPSConnection(host='api.waqfeya.net', port=443): Failed to resolve 'api.waqfeya.net' ([Errno -2] Name or service not known)"))
+https://api.waqfeya.net/books?page=2 None
+https://waqfeya.net/books?sort=new&page=2 (['6af45896a35c6cb3a166cadf', '66a88d7187c55ca3e12e5699'], 206936)
+kv pageSize\":30
+kv totalPages\":387
+kv total\":11592
+chunks 22
+url static/chunks/0cz1d0mv5g_q7.js https://a/c%20d?a=1&c=3
+url static/chunks/0cz1d0mv5g_q7.js https://github.com/zloirock/core-js
+url static/chunks/0cz1d0mv5g_q7.js https://github.com/zloirock/core-js/blob/v3.38.1/LICENSE
+url static/chunks/16o92pd2bfunu.js https://waqfeya.net/${e}
+url static/chunks/16o92pd2bfunu.js https://${e.slice(7)}
+url static/chunks/1jg7i8t3-tno7.js http://www.w3.org/2000/svg
+url static/chunks/1qteq9l_iycrg.js https://www.googletagmanager.com/gtag/js?id=${t}
+url static/chunks/1qteq9l_iycrg.js https://github.com/vercel/next.js/issues
+url static/chunks/1qteq9l_iycrg.js https://api.clerkstage.dev
+url static/chunks/1qteq9l_iycrg.js https://waqfeya-backend-r9rw8.ondigitalocean.app/favorite?page=${e}&pageSize=${t}
+url static/chunks/1qteq9l_iycrg.js https://api.clerk.com
+url static/chunks/1qteq9l_iycrg.js https://www.googletagmanager.com/gtm.js
+url static/chunks/1qteq9l_iycrg.js https://waqfeya-backend-r9rw8.ondigitalocean.app/favorite/${e}/toggle
+url static/chunks/1qteq9l_iycrg.js https://waqfeya-backend-r9rw8.ondigitalocean.app/user/profile
+url static/chunks/1qteq9l_iycrg.js https://waqfeya-backend-r9rw8.ondigitalocean.app/favorite/ids
+url static/chunks/1qteq9l_iycrg.js https://nextjs.org
+url static/chunks/1qteq9l_iycrg.js https://api.lclclerk.com
+pg )(`https://waqfeya-backend-r9rw8.ondigitalocean.app/favorite?page=${e}&pageSize=${t}`,{method:"GET"});if(401===r.status)throw 
+url static/chunks/1rjc9j0t7u0bj.js https://react.dev/errors/
+url static/chunks/1z1zc4d8g8266.js http://www.w3.org/2000/svg
+url static/chunks/31iarpvmym1z2.js http://www.w3.org/XML/1998/namespace
+url static/chunks/31iarpvmym1z2.js http://www.w3.org/2000/svg
+url static/chunks/31iarpvmym1z2.js https://react.dev/errors/
+url static/chunks/31iarpvmym1z2.js http://www.w3.org/1998/Math/MathML
+url static/chunks/31iarpvmym1z2.js http://www.w3.org/1999/xlink
+url static/chunks/32p0nponrpi-d.js https://waqfeya-backend-r9rw8.ondigitalocean.app
+url static/chunks/32p0nponrpi-d.js https://waqfeya-backend-r9rw8.ondigitalocean.app/user/preferences
+url static/chunks/3mep89czrkqac.js https://${a}/npm/@clerk/clerk-js@${d}/dist/clerk.${u}browser.js
+url static/chunks/3zc57iu1fv8i7.js https://clerk-telemetry.com
