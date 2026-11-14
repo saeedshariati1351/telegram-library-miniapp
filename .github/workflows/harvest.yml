@@ -1,0 +1,40 @@
+name: جمع‌آوری کتابخانه‌های آنلاین
+on:
+  push:
+    branches: [main]
+    paths: ['harvest/request.txt']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          sparse-checkout: harvest
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: run
+        run: |
+          pip install -q requests openpyxl beautifulsoup4 lxml
+          mkdir -p out
+          while read -r line; do
+            [ -z "$line" ] && continue; case "$line" in \#*) continue;; esac
+            echo "::group::$line"
+            (cd harvest && timeout 300m python3 $line) 2>&1 | tail -200 || echo "FAILED: $line"
+            echo "::endgroup::"
+          done < harvest/request.txt
+          ls -la out
+      - name: push results to branch harvest-data
+        if: always()
+        run: |
+          cd out
+          git init -q -b harvest-data
+          git config user.name "library-bot"; git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}"
+          git fetch -q --depth 1 origin harvest-data && git reset -q --soft FETCH_HEAD || true
+          git add -A; git commit -qm "harvest $(date -u +%F-%H%M)" || true
+          git push -q origin harvest-data
