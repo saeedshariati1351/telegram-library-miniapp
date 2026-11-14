@@ -1,5 +1,10 @@
-h_explore.py
 h_shamela.py
-h_turath_usul.py
-h_rafed.py
-h_eshia.py
+h_waqf.py
+h_kadhim.py
+h_ketabnak.py
+h_safahat.py
+h_ghaem.py
+h_iweb.py
+h_archive.py
+h_misc.py
+h_small.py
