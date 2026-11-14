@@ -1,0 +1,2 @@
+archive language%3A%28per%20OR%20Persian%20OR%20fas%20OR%20Farsi%29%20AND%20mediatype%3Atexts 48591
+archive language%3A%28ara%20OR%20Arabic%29%20AND%20mediatype%3Atexts%20AND%20downloads%3A%5B300%20TO%20999999999%5D 150000
