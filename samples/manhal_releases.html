@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مكتبة و دار مخطوطات العتبة العباسية المقدسة</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+        <!-- Font Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- AOS Animation -->
+    <link rel="stylesheet" href="https://manhal.alkafeel.net/opac/css/app.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+    <!-- Custom CSS - with performance optimization -->
+    <link rel="stylesheet" href="/css/lib/style.css?ver=1" media="all" fetchpriority="high">
+
+
+
+
+</head>
+<body>
+<!-- Header Section -->
+<header class="header-section">
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+
+            <a class="navbar-brand" href="https://manhal.alkafeel.net" id="logoLink">
+                <img src="https://manhal.alkafeel.net/img/lib/logo.png" alt="شعار المكتبة" class="logo" height="50">
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="https://manhal.alkafeel.net/ar" data-ar="الرئيسية" data-en="Home">الرئيسية</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                           data-ar="من نحن" data-en="About Us">
+                            من نحن
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="https://manhal.alkafeel.net/ar/about_as" data-ar="عن المكتبة" data-en="About Library"><i
+                                        class="fas fa-info-circle"></i> عن المكتبة</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                           data-ar="المراكز" data-en="Centers">
+                            المراكز
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a target="_blank" class="dropdown-item" href="https://manhal.alkafeel.net/ar/information_systems" data-ar="مركز الفهرسة ونظم المعلومات"
+                                   data-en="Cataloging and Information Systems Center"> مركز الفهرسة ونظم المعلومات</a></li>
+                            <li><a target="_blank" class="dropdown-item" href="https://www.library.alkafeel.net/dic/" data-ar="مركز المعلومات الرقمية"
+                                   data-en="Digital Information Center"> مركز المعلومات الرقمية</a></li>
+                            <li><a target="_blank" class="dropdown-item" href="https://manhal.alkafeel.net/ar/photos" data-ar="مركز تصوير المخطوطات وفهرستها"
+                                   data-en="Manuscript Imaging and Cataloging Center"> مركز تصوير المخطوطات وفهرستها</a></li>
+                            <li><a target="_blank" class="dropdown-item" href="https://www.alfkrya.com"
+                                   data-ar="مركز الفضل لصيانة وحفظ التراث المخطوط والارشيف الوثائقي"
+                                   data-en="Al-Fadl Center for Manuscript Conservation"> مركز الفضل لصيانة وحفظ التراث المخطوط والارشيف الوثائقي</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                           data-ar="الوحدات" data-en="Units">
+                            الوحدات
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a target="_blank" class="dropdown-item" href="#" data-ar="الاعارة" data-en="Borrowing">الاعارة </a>
+                            </li>
+                            <li><a target="_blank" class="dropdown-item" href="#" data-ar="التزويد" data-en="Supply"> التزويد </a>
+                            </li>
+                            <li><a target="_blank" class="dropdown-item" href="#" data-ar="التأليف والدراسات"
+                                   data-en="Authorship and Studies"> التأليف والدراسات </a></li>
+                            <li><a target="_blank" class="dropdown-item" href="#" data-ar="الترجمة" data-en="Translation"> الترجمة
+                                </a></li>
+                            <li><a target="_blank" class="dropdown-item" href="#" data-ar="التصحيف" data-en="Correction"> التصحيف
+                                </a></li>
+                            <li><a target="_blank" class="dropdown-item" href="#" data-ar="الذاتية والخدمات"
+                                   data-en="Services">الذاتية والخدمات</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://manhal.alkafeel.net/ar/news_lib" data-ar="الأخبار" data-en="News">الأخبار</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://manhal.alkafeel.net/ar/releases" data-ar="إصدارات المكتبة"
+                           data-en="Library Publications">إصدارات المكتبة</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://manhal.alkafeel.net/ar/reach_releases" data-ar="وصلنا حديثا" data-en="Recently Arrived">وصلنا
+                            حديثا</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                           data-ar="المواقع التابعة لنا" data-en="Our Affiliated Sites">
+                            المواقع التابعة لنا
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a target="_blank" class="dropdown-item" href="https://alfkrya.com/" data-ar="المرجع الرقمي للتراث المخطوط"
+                                   data-en="Digital Reference for Manuscript Heritage"> المرجع الرقمي للتراث
+                                    المخطوط </a></li>
+                            <li><a target="_blank" class="dropdown-item" href="https://kiqp.net/" data-ar="البوابة العراقية للمعرفة"
+                                   data-en="Iraqi Knowledge Portal"> البوابة العراقية للمعرفة</a></li>
+                            <li><a target="_blank" class="dropdown-item" href="https://iqdr.iq/"
+                                   data-ar="المستودع الرقمي العراقي للأطاريح والرسائل الجامعية"
+                                   data-en="Iraqi Digital Repository for Theses">المستودع الرقمي العراقي للأطاريح
+                                    والرسائل الجامعية</a></li>
+                            <li><a target="_blank" class="dropdown-item" href="https://afiqa.net/" data-ar="الملف الاستنادي للمؤلفين العراقيين"
+                                   data-en="Iraqi Authors Authority File">الملف الاستنادي للمؤلفين العراقيين</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://manhal.alkafeel.net/ar/contributors" data-ar="اتصل بنا" data-en="Contact Us">اتصل بنا</a>
+                    </li>
+
+                    <!-- Language Switcher Button (Desktop) -->
+                    <li class="nav-item d-flex align-items-center justify-content-center" style="width: 50px;">
+                        <button class="btn-lang d-none d-lg-block" id="langSwitch" aria-label="Switch Language">
+                            <span class="lang-text">EN</span>
+                        </button>
+                    </li>
+                    <!-- Language Switcher Mobile -->
+                    <li class="nav-item d-lg-none">
+                        <button class="btn-lang-mobile" id="langSwitchMobile">
+                            <i class="fas fa-language"></i> <span class="lang-text-mobile">EN</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<script src="https://manhal.alkafeel.net/js/lib/script.js"></script>
+<script src="https://manhal.alkafeel.net/js/lib/search-enhancement.js"></script>
+</body>
+</html>
+
+<section class="pdf-section section-padding" dir="rtl">
+    <div class="container">
+
+        <div class="section-title" style="text-align: right;" data-aos="fade-up">
+            <h2>وصلنا حديثا</h2>
+        </div>
+
+        <div class="pdf-grid" data-aos="fade-up" data-aos-delay="200">
+            <div class="row g-4">
+                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6" data-category="2">
+                        <div class="pdf-card">
+                            <div class="pdf-image-container">
+                                                                    <img src="https://manhal.alkafeel.net/storage/uploads/catalog/thumb/release_7.jpg"
+                                         alt="كتاب الواضح في المناهج وطرائق تدريس العلوم
+يسعد المؤلفان بعض المناهج الحديثة للرائد تدريس مادة العلوم"
+                                         class="pdf-image"
+                                         loading="lazy">
+                                
+                                <div class="pdf-overlay">
+                                    <div class="pdf-actions">
+                                        <a href="https://manhal.alkafeel.net/ar/reach_release/7"
+                                           class="action-btn preview-btn"
+                                           data-bs-toggle="tooltip"
+                                           title="معاينة">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                                                            </div>
+                                </div>
+
+                                
+                                <div class="pdf-badge book-badge badge-rtl">
+                                    الكتب الحديثة
+                                </div>
+                                <div class="pdf-format format-rtl">PDF</div>
+                            </div>
+
+                            <div class="pdf-content text-end">
+                                <h3 class="pdf-title">
+                                    كتاب الواضح في المناهج وطرائق تدريس العلوم
+يسعد المؤلفان بعض المناهج الحديثة لل...
+                                </h3>
+                                <p class="pdf-author">
+                                    الدكتور علي عبد الزهرة الغزالي والدكتور  حسين جليل...
+                                </p>
+
+                                <div class="pdf-meta">
+                                    <span class="meta-item">
+                                        <i class="fas fa-file-pdf"></i>
+                                        356 صفحة
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        2025
+                                    </span>
+                                </div>
+
+                                <div class="pdf-rating rating-rtl">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <span class="rating-text">(4.8)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6" data-category="2">
+                        <div class="pdf-card">
+                            <div class="pdf-image-container">
+                                                                    <img src="https://manhal.alkafeel.net/storage/uploads/catalog/thumb/release_6.jpg"
+                                         alt="التفكير مفتاح التدريس الفعال"
+                                         class="pdf-image"
+                                         loading="lazy">
+                                
+                                <div class="pdf-overlay">
+                                    <div class="pdf-actions">
+                                        <a href="https://manhal.alkafeel.net/ar/reach_release/6"
+                                           class="action-btn preview-btn"
+                                           data-bs-toggle="tooltip"
+                                           title="معاينة">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                                                                    <a href="https://manhal.alkafeel.net/storage/uploads/catalog/pdf/release_6.pdf"
+                                               class="action-btn download-btn"
+                                               data-bs-toggle="tooltip"
+                                               title="تحميل"
+                                               download>
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                                                            </div>
+                                </div>
+
+                                
+                                <div class="pdf-badge book-badge badge-rtl">
+                                    الكتب الحديثة
+                                </div>
+                                <div class="pdf-format format-rtl">PDF</div>
+                            </div>
+
+                            <div class="pdf-content text-end">
+                                <h3 class="pdf-title">
+                                    التفكير مفتاح التدريس الفعال
+                                </h3>
+                                <p class="pdf-author">
+                                    الدكتورة وفاء عبد الرزاق العنبكي وسعيد حسين علي ال...
+                                </p>
+
+                                <div class="pdf-meta">
+                                    <span class="meta-item">
+                                        <i class="fas fa-file-pdf"></i>
+                                        170 صفحة
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        2025
+                                    </span>
+                                </div>
+
+                                <div class="pdf-rating rating-rtl">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <span class="rating-text">(4.8)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6" data-category="2">
+                        <div class="pdf-card">
+                            <div class="pdf-image-container">
+                                                                    <img src="https://manhal.alkafeel.net/storage/uploads/catalog/thumb/release_5.jpg"
+                                         alt="تاريخ المرقد العلوي المطهر"
+                                         class="pdf-image"
+                                         loading="lazy">
+                                
+                                <div class="pdf-overlay">
+                                    <div class="pdf-actions">
+                                        <a href="https://manhal.alkafeel.net/ar/reach_release/5"
+                                           class="action-btn preview-btn"
+                                           data-bs-toggle="tooltip"
+                                           title="معاينة">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                                                                    <a href="https://manhal.alkafeel.net/storage/uploads/catalog/pdf/release_5.pdf"
+                                               class="action-btn download-btn"
+                                               data-bs-toggle="tooltip"
+                                               title="تحميل"
+                                               download>
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                                                            </div>
+                                </div>
+
+                                
+                                <div class="pdf-badge book-badge badge-rtl">
+                                    الكتب الحديثة
+                                </div>
+                                <div class="pdf-format format-rtl">PDF</div>
+                            </div>
+
+                            <div class="pdf-content text-end">
+                                <h3 class="pdf-title">
+                                    تاريخ المرقد العلوي المطهر
+                                </h3>
+                                <p class="pdf-author">
+                                    الدكتور عبد الهادي عباس الابراهيمي
+                                </p>
+
+                                <div class="pdf-meta">
+                                    <span class="meta-item">
+                                        <i class="fas fa-file-pdf"></i>
+                                        447 صفحة
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        2025
+                                    </span>
+                                </div>
+
+                                <div class="pdf-rating rating-rtl">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <span class="rating-text">(4.8)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6" data-category="3">
+                        <div class="pdf-card">
+                            <div class="pdf-image-container">
+                                                                    <img src="https://manhal.alkafeel.net/storage/uploads/catalog/thumb/release_4.jpg"
+                                         alt="ذكر الأسباب الصادة عن إدراك الصواب"
+                                         class="pdf-image"
+                                         loading="lazy">
+                                
+                                <div class="pdf-overlay">
+                                    <div class="pdf-actions">
+                                        <a href="https://manhal.alkafeel.net/ar/reach_release/4"
+                                           class="action-btn preview-btn"
+                                           data-bs-toggle="tooltip"
+                                           title="معاينة">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                                                                    <a href="https://manhal.alkafeel.net/storage/uploads/catalog/pdf/release_4.pdf"
+                                               class="action-btn download-btn"
+                                               data-bs-toggle="tooltip"
+                                               title="تحميل"
+                                               download>
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                                                            </div>
+                                </div>
+
+                                
+                                <div class="pdf-badge research-badge badge-rtl">
+                                    البحوث
+                                </div>
+                                <div class="pdf-format format-rtl">PDF</div>
+                            </div>
+
+                            <div class="pdf-content text-end">
+                                <h3 class="pdf-title">
+                                    ذكر الأسباب الصادة عن إدراك الصواب
+                                </h3>
+                                <p class="pdf-author">
+                                    المؤلف الكلاسيكي
+                                </p>
+
+                                <div class="pdf-meta">
+                                    <span class="meta-item">
+                                        <i class="fas fa-file-pdf"></i>
+                                        465 صفحة
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        2025
+                                    </span>
+                                </div>
+
+                                <div class="pdf-rating rating-rtl">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <span class="rating-text">(4.8)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6" data-category="2">
+                        <div class="pdf-card">
+                            <div class="pdf-image-container">
+                                                                    <img src="https://manhal.alkafeel.net/storage/uploads/catalog/thumb/release_3.jpg"
+                                         alt="فهرس مخطوطات مكتبة ودار مخطوطات العتبة العباسية المقدسة الجزء الثاني"
+                                         class="pdf-image"
+                                         loading="lazy">
+                                
+                                <div class="pdf-overlay">
+                                    <div class="pdf-actions">
+                                        <a href="https://manhal.alkafeel.net/ar/reach_release/3"
+                                           class="action-btn preview-btn"
+                                           data-bs-toggle="tooltip"
+                                           title="معاينة">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                                                                    <a href="https://manhal.alkafeel.net/storage/uploads/catalog/pdf/release_3.pdf"
+                                               class="action-btn download-btn"
+                                               data-bs-toggle="tooltip"
+                                               title="تحميل"
+                                               download>
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                                                            </div>
+                                </div>
+
+                                
+                                <div class="pdf-badge book-badge badge-rtl">
+                                    الكتب الحديثة
+                                </div>
+                                <div class="pdf-format format-rtl">PDF</div>
+                            </div>
+
+                            <div class="pdf-content text-end">
+                                <h3 class="pdf-title">
+                                    فهرس مخطوطات مكتبة ودار مخطوطات العتبة العباسية المقدسة الجزء الثاني
+                                </h3>
+                                <p class="pdf-author">
+                                    العتبة العباسية المقدسة
+                                </p>
+
+                                <div class="pdf-meta">
+                                    <span class="meta-item">
+                                        <i class="fas fa-file-pdf"></i>
+                                        454 صفحة
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        2025
+                                    </span>
+                                </div>
+
+                                <div class="pdf-rating rating-rtl">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <span class="rating-text">(4.8)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6" data-category="1">
+                        <div class="pdf-card">
+                            <div class="pdf-image-container">
+                                                                    <img src="https://manhal.alkafeel.net/storage/uploads/catalog/thumb/release_2.jpg"
+                                         alt="مخطوطة في علوم القرآن والتفسير"
+                                         class="pdf-image"
+                                         loading="lazy">
+                                
+                                <div class="pdf-overlay">
+                                    <div class="pdf-actions">
+                                        <a href="https://manhal.alkafeel.net/ar/reach_release/2"
+                                           class="action-btn preview-btn"
+                                           data-bs-toggle="tooltip"
+                                           title="معاينة">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                                                                    <a href="https://manhal.alkafeel.net/storage/uploads/catalog/pdf/release_2.pdf"
+                                               class="action-btn download-btn"
+                                               data-bs-toggle="tooltip"
+                                               title="تحميل"
+                                               download>
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                                                            </div>
+                                </div>
+
+                                
+                                <div class="pdf-badge manuscript-badge badge-rtl">
+                                    المخطوطات
+                                </div>
+                                <div class="pdf-format format-rtl">PDF</div>
+                            </div>
+
+                            <div class="pdf-content text-end">
+                                <h3 class="pdf-title">
+                                    مخطوطة في علوم القرآن والتفسير
+                                </h3>
+                                <p class="pdf-author">
+                                    مؤلف مجهول
+                                </p>
+
+                                <div class="pdf-meta">
+                                    <span class="meta-item">
+                                        <i class="fas fa-file-pdf"></i>
+                                        189 صفحة
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        2025
+                                    </span>
+                                </div>
+
+                                <div class="pdf-rating rating-rtl">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <span class="rating-text">(4.8)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6" data-category="1">
+                        <div class="pdf-card">
+                            <div class="pdf-image-container">
+                                                                    <img src="https://manhal.alkafeel.net/storage/uploads/catalog/thumb/release_1.jpg"
+                                         alt="المصحف الشريف المنسوب الى علي بن هلال البغدادي المعروف بابن البواب"
+                                         class="pdf-image"
+                                         loading="lazy">
+                                
+                                <div class="pdf-overlay">
+                                    <div class="pdf-actions">
+                                        <a href="https://manhal.alkafeel.net/ar/reach_release/1"
+                                           class="action-btn preview-btn"
+                                           data-bs-toggle="tooltip"
+                                           title="معاينة">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                                                                    <a href="https://manhal.alkafeel.net/storage/uploads/catalog/pdf/release_1.pdf"
+                                               class="action-btn download-btn"
+                                               data-bs-toggle="tooltip"
+                                               title="تحميل"
+                                               download>
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                                                            </div>
+                                </div>
+
+                                
+                                <div class="pdf-badge manuscript-badge badge-rtl">
+                                    المخطوطات
+                                </div>
+                                <div class="pdf-format format-rtl">PDF</div>
+                            </div>
+
+                            <div class="pdf-content text-end">
+                                <h3 class="pdf-title">
+                                    المصحف الشريف المنسوب الى علي بن هلال البغدادي المعروف بابن البواب
+                                </h3>
+                                <p class="pdf-author">
+                                    ابن البواب، علي بن هلال
+                                </p>
+
+                                <div class="pdf-meta">
+                                    <span class="meta-item">
+                                        <i class="fas fa-file-pdf"></i>
+                                        452 صفحة
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        2025
+                                    </span>
+                                </div>
+
+                                <div class="pdf-rating rating-rtl">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <span class="rating-text">(4.8)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-wrapper rtl-pagination" data-aos="fade-up" data-aos-delay="300">
+            
+        </div>
+    </div>
+</section>
+
+<div class="footer-bottom">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-12">
+                <p class="copyright text-center" data-ar="جميع الحقوق محفوضة لمكتبة ودار المخطوطات العتبة العباسية المقدسة"
+                   data-en="All Rights Reserved for Al-Abbas Holy Shrine Library and Manuscript House">جميع الحقوق محفوضة لمكتبة ودار المخطوطات العتبة العباسية المقدسة
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Scroll to Top -->
+<button id="scrollToTop" class="btn-scroll-top">
+    <i class="fas fa-arrow-up"></i>
+</button>
+
+<style>
+    /* RTL/LTR Badge Positioning */
+    .badge-rtl {
+        right: 15px;
+        left: auto;
+    }
+
+    .badge-ltr {
+        left: 15px;
+        right: auto;
+    }
+
+    .format-rtl {
+        left: 15px;
+        right: auto;
+    }
+
+    .format-ltr {
+        right: 15px;
+        left: auto;
+    }
+
+    /* RTL Rating */
+    .rating-rtl {
+        direction: ltr;
+        text-align: right;
+    }
+
+    .rating-ltr {
+        direction: ltr;
+        text-align: left;
+    }
+
+    /* RTL Pagination */
+    .rtl-pagination .pagination {
+        direction: rtl;
+    }
+
+    .ltr-pagination .pagination {
+        direction: ltr;
+    }
+</style>
+
+<script>
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
