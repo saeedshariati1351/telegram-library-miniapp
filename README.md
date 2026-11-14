@@ -16,4 +16,14 @@ python3 tools/excel_to_json.py catalog.xlsx data/books.json
 git commit -am "به‌روزرسانی فهرست" && git push
 ```
 
+## کتابخانه‌های آنلاین (نسخهٔ ۴)
+
+کتاب‌های کتابخانه‌های آنلاین (گنجور، ویکی‌نبشته، تراث، أصول، الوقفیة، نور و…) پس از ساختن داده‌ها افزوده می‌شوند.
+هر کتابخانه یک «کانال» با `web: 1` است و پیوند هر کتاب، صفحه یا PDF آن در سایت کتابخانه است:
+
+```
+python3 tools/build_data.py catalog.xlsx data/          # در صورت نیاز
+python3 tools/add_online.py merged.xlsx data/ ../telegram-library-search/s/
+```
+
 سایت ایستا است (HTML/CSS/JS بدون ساخت) و روی GitHub Pages میزبانی می‌شود.

@@ -82,7 +82,13 @@
   };
 
   // lite row: [id, title, author, translator, volume, copies, year]
-  function L(r) { return { id: r[0], t: r[1], a: r[2] || '', tr: r[3] || '', v: r[4] || '', n: r[5] || 1, y: r[6] || '' }; }
+  function L(r) { return { id: r[0], t: r[1], a: r[2] || '', tr: r[3] || '', v: r[4] || '', n: r[5] || 1, y: r[6] || '', cu: r[10] || '' }; }
+  // online libraries (v4): a copy whose link is a web page, not a Telegram post
+  function isWeb(c) { return !!(c && (c.web || (c.l && !/^https?:\/\/t\.me\//i.test(c.l)))); }
+  function readLabel(c, ch) { return !c.l ? 'پیوند عمومی ندارد' : isWeb(c) ? 'خواندن در ' + (ch.name || 'کتابخانه') : 'خواندن در تلگرام'; }
+  function webCover(w) { for (var i = 0; i < w.c.length; i++) if (w.c[i].cu) return w.c[i].cu; return ''; }
+  function onlineChans() { return HOME.channels.map(function (c, i) { return [c, i]; }).filter(function (x) { return x[0].web; }).sort(function (a, b) { return b[0].w - a[0].w; }); }
+  function tgChans() { return HOME.channels.map(function (c, i) { return [c, i]; }).filter(function (x) { return !x[0].web; }).sort(function (a, b) { return b[0].w - a[0].w; }); }
   function volLabel(v) { if (!v) return ''; return /^(جلد|ج\.)/.test(v) ? v : 'جلد ' + v; }
 
   // covers: downloaded cover image (covers/<id/1000>/<id>.webp) over a default colour cover
@@ -90,7 +96,8 @@
   function hasCover(id) { var b = CV[id % COVER_BASES.length]; return b && id != null && id >= 0 && (b[id >> 3] >> (id & 7)) & 1; }
   function coverHTML(b, size) {
     var t = b.t, a = b.a, v = volLabel(b.v);
-    var img = hasCover(b.id) ? '<img alt="" decoding="async" src="' + coverBase(b.id) + 'covers/' + Math.floor(b.id / 1000) + '/' + b.id + '.webp?v=' + VER + '" onload="this.parentNode.classList.add(\'has-img\')" onerror="this.remove()">' : '';
+    var src = hasCover(b.id) ? coverBase(b.id) + 'covers/' + Math.floor(b.id / 1000) + '/' + b.id + '.webp?v=' + VER : (b.cu || '');
+    var img = src ? '<img alt="" decoding="async" referrerpolicy="no-referrer" src="' + esc(src) + '" onload="this.parentNode.classList.add(\'has-img\')" onerror="this.remove()">' : '';
     return '<div class="cover c-' + size + '" role="img" aria-label="جلد ' + esc(t) + '"><div class="fb" style="background:' + colorFor(t) + '"><i></i><b>' +
       esc(t.length > 48 ? t.slice(0, 46) + '…' : t) + '</b><small>' + esc(v ? v + (a ? ' · ' + a : '') : a) + '</small></div>' + img + '</div>';
   }
@@ -171,7 +178,7 @@
   function failed() { return '<div class="empty">بارگذاری ممکن نشد. اتصال را بررسی کنید و دوباره امتحان کنید.</div>'; }
   function channelRow(ch, i) {
     return '<a class="row" href="#/c/' + i + '"><div class="dot">' + ICON.books + '</div><div class="grow"><span class="nm">' + esc(ch.name) + '</span>' +
-      '<span class="sub">' + fa(ch.w.toLocaleString('en')) + ' کتاب' + (ch.handle ? ' · ' + esc(ch.handle) : '') + '</span></div>' + ICON.chev + '</a>';
+      '<span class="sub">' + fa(ch.w.toLocaleString('en')) + ' کتاب' + (ch.web ? ' · کتابخانهٔ آنلاین' : '') + (ch.handle ? ' · ' + esc(ch.handle) : '') + '</span></div>' + ICON.chev + '</a>';
   }
   var navToken = 0;
   function render(html, tab, sub) {
@@ -192,9 +199,9 @@
     var h = HOME;
     var day = Math.floor(Date.now() / 864e5);
     var feat = h.featured.length ? h.featured[day % h.featured.length] : null;
-    var chans = h.channels.map(function (c, i) { return [c, i]; }).sort(function (a, b) { return b[0].w - a[0].w; }).slice(0, 6);
+    var chans = tgChans().slice(0, 6), onl = onlineChans();
     var html = '<header class="top"><div class="brand"><div class="logo">' + ICON.logo + '</div><div><h1>کتابخانه</h1>' +
-      '<p>' + fa(h.nworks.toLocaleString('en')) + ' کتاب از ' + fa(h.channels.length) + ' کانال</p></div></div>' +
+      '<p>' + fa(h.nworks.toLocaleString('en')) + ' کتاب از ' + fa(h.channels.length - onl.length) + ' کانال' + (onl.length ? ' و ' + fa(onl.length) + ' کتابخانهٔ آنلاین' : '') + '</p></div></div>' +
       '<a class="icon-btn" href="#/saved" aria-label="نشان‌شده‌ها">' + ICON.save + '</a></header>' +
       '<a class="search" href="#/s" role="search" aria-label="جستجو در کتابخانه">' + ICON.search + '<span style="color:var(--muted);font-size:15px">عنوان، نویسنده، مترجم یا ناشر…</span></a>' +
       '<nav class="chips" aria-label="دسته‌ها">' + h.cats.filter(function (c) { return c.k !== 'x'; }).map(function (c) {
@@ -203,7 +210,9 @@
       '<section class="sec"><div class="sec-head"><h2>گشتی در قفسه‌ها</h2><a href="#/categories">همهٔ دسته‌ها</a></div><div id="mix">' + shelf(h.recent.slice(0, 12)) + '</div></section>' +
       (feat ? '<section class="sec"><div class="sec-head"><h2>پیشنهاد امروز</h2></div><div id="feat">' + '<div class="card list">' + rowHTML(feat) + '</div></div></section>' : '') +
       '<section class="sec"><div class="sec-head"><h2>مرور بر اساس کانال</h2><a href="#/channels">همهٔ کانال‌ها</a></div><div class="card list">' +
-      chans.map(function (x) { return channelRow(x[0], x[1]); }).join('') + '</div></section>';
+      chans.map(function (x) { return channelRow(x[0], x[1]); }).join('') + '</div></section>' +
+      (onl.length ? '<section class="sec"><div class="sec-head"><h2>کتابخانه‌های آنلاین</h2><a href="#/channels">همه</a></div><div class="card list">' +
+        onl.slice(0, 6).map(function (x) { return channelRow(x[0], x[1]); }).join('') + '</div></section>' : '');
     var tok = render(html, 'home');
     randomMix().then(function (items) {
       if (stale(tok) || !items.length) return;
@@ -235,14 +244,14 @@
   }
   function featCard(id, w) {
     var c = w.c[0], ch = HOME.channels[c.ch] || {};
-    var b = { id: id, t: w.t, a: w.a || '', v: w.v || '' };
+    var b = { id: id, t: w.t, a: w.a || '', v: w.v || '', cu: webCover(w) };
     return '<article class="card feat"><div class="feat-top"><a href="#/b/' + id + '">' + coverHTML(b, 'xs').replace('c-xs"', 'c-xs" style="width:84px;height:120px"') + '</a>' +
       '<dl class="kv"><dt>عنوان</dt><dd style="font-weight:700"><a href="#/b/' + id + '" style="color:inherit">' + esc(w.t) + '</a></dd>' +
       (w.a ? '<dt>پدیدآور</dt><dd>' + peopleLinks(w.a) + '</dd>' : '') +
       (w.tr ? '<dt>مترجم</dt><dd>' + peopleLinks(w.tr) + '</dd>' : '') +
       (c.p ? '<dt>ناشر</dt><dd>' + esc(c.p) + '</dd>' : '') + (c.y ? '<dt>سال</dt><dd>' + fa(c.y) + '</dd>' : '') +
-      '<dt>کانال</dt><dd>' + esc(ch.name || '') + '</dd></dl></div>' +
-      '<button class="primary in-card" data-open="' + esc(c.l || '') + '"' + (c.l ? '' : ' disabled') + '>' + ICON.tg + (c.l ? 'خواندن در تلگرام' : 'پیوند عمومی ندارد') + '</button></article>';
+      '<dt>' + (isWeb(c) ? 'کتابخانه' : 'کانال') + '</dt><dd>' + esc(ch.name || '') + '</dd></dl></div>' +
+      '<button class="primary in-card" data-open="' + esc(c.l || '') + '"' + (c.l ? '' : ' disabled') + '>' + (isWeb(c) ? ICON.ext : ICON.tg) + readLabel(c, ch) + '</button></article>';
   }
   function peopleLinks(s) {
     var parts = splitNames(s);
@@ -258,12 +267,13 @@
       if (!w) return render(bar() + '<div class="empty">این کتاب پیدا نشد.</div>', null, true);
       var c0 = w.c[0], ch0 = HOME.channels[c0.ch] || {};
       var f = w.f || null, fm = w.fm || 0;
-      var lite = [id, w.t, w.a || '', w.tr || '', w.v || '', w.c.length, w.y || ''];
+      var cu = webCover(w), web0 = isWeb(c0);
+      var lite = [id, w.t, w.a || '', w.tr || '', w.v || '', w.c.length, w.y || '', c0.p || '', w.k || '', c0.ch, cu];
       var saved = isSaved(id);
       var meta = [c0.p, c0.y && fa(c0.y), c0.pg && fa(c0.pg) + ' صفحه'].filter(Boolean).join(' · ');
       var h = bar('<div class="grp"><button class="icon-btn" id="share" aria-label="هم‌رسانی">' + ICON.share + '</button>' +
         '<button class="icon-btn' + (saved ? ' on' : '') + '" id="save" aria-label="' + (saved ? 'برداشتن نشان' : 'نشان کردن') + '">' + ICON.save + '</button></div>');
-      h += '<section class="hero">' + coverHTML({ id: id, t: w.t, a: w.a || '', v: w.v || '' }, 'lg') +
+      h += '<section class="hero">' + coverHTML({ id: id, t: w.t, a: w.a || '', v: w.v || '', cu: cu }, 'lg') +
         '<div style="display:flex;flex-direction:column;gap:6px;align-items:center"><h1>' + esc(w.t) + '</h1>' +
         (w.st ? '<p style="font-size:14px;color:var(--on-bg)">' + esc(w.st) + '</p>' : '') +
         (w.v ? '<p>' + esc(volLabel(w.v)) + '</p>' : '') +
@@ -273,21 +283,22 @@
         (meta ? '<p>' + esc(meta) + '</p>' : '') + '</div>' +
         (c0.cv ? '<button class="ghost-btn" style="color:var(--gold);border-color:var(--gold)" data-open="' + esc(c0.cv === 1 ? c0.l : c0.cv) + '">' + ICON.img + 'دیدن جلد در کانال</button>' : '') +
         '</section>';
-      h += '<section class="sec px" style="gap:10px"><button class="primary" data-open="' + esc(c0.l || '') + '"' + (c0.l ? '' : ' disabled') + '>' + ICON.tg +
-        (c0.l ? 'خواندن در تلگرام' : 'پیوند عمومی ندارد') + '</button>' +
-        '<p class="muted" style="margin:0;text-align:center;font-size:12px">' + esc(['کانال اصلی: ' + (ch0.name || '—'), 'PDF', c0.sz ? fa(c0.sz) + ' مگابایت' : '', c0.d ? fa(c0.d) : ''].filter(Boolean).join(' · ')) + '</p>' +
+      h += '<section class="sec px" style="gap:10px"><button class="primary" data-open="' + esc(c0.l || '') + '"' + (c0.l ? '' : ' disabled') + '>' + (web0 ? ICON.ext : ICON.tg) +
+        readLabel(c0, ch0) + '</button>' +
+        '<p class="muted" style="margin:0;text-align:center;font-size:12px">' + esc([(web0 ? 'کتابخانهٔ آنلاین: ' : 'کانال اصلی: ') + (ch0.name || '—'), web0 ? (/\.pdf(\?|$)/i.test(c0.l || '') ? 'PDF' : 'نسخهٔ وب') : 'PDF', c0.sz ? fa(c0.sz) + ' مگابایت' : '', c0.d ? fa(c0.d) : ''].filter(Boolean).join(' · ')) + '</p>' +
         (c0.note ? '<p class="muted" style="margin:0;text-align:center;font-size:12px;line-height:1.8">' + esc(c0.note) + '</p>' : '') + '</section>';
       var alts = w.c.slice(1);
       if (alts.length) {
         h += '<section class="sec"><div class="px" style="display:flex;flex-direction:column;gap:4px"><h2>نسخه‌های دیگر (' + fa(alts.length) + ')</h2>' +
-          '<p class="muted" style="margin:0;font-size:13px;line-height:1.7">همین کتاب در کانال‌های دیگر یا پست‌های دیگر. اگر پیوند اصلی باز نشد، از این‌ها استفاده کنید.</p></div>' +
+          '<p class="muted" style="margin:0;font-size:13px;line-height:1.7">همین کتاب در کانال‌ها و کتابخانه‌های آنلاین دیگر. اگر پیوند اصلی باز نشد، از این‌ها استفاده کنید.</p></div>' +
           '<div class="card list">' + alts.slice(0, 30).map(function (a) {
             var ch = HOME.channels[a.ch] || {};
             var diff = (a.p && c0.p && a.p !== c0.p) || (a.y && c0.y && a.y !== c0.y);
             var same = a.ch === c0.ch;
-            var m = ['PDF', a.sz ? fa(a.sz) + ' مگابایت' : '', [a.p, a.y && fa(a.y)].filter(Boolean).join('، '), a.d ? fa(a.d) : ''].filter(Boolean).join(' · ');
+            var aw = isWeb(a);
+            var m = [aw ? (/\.pdf(\?|$)/i.test(a.l || '') ? 'PDF' : 'نسخهٔ وب') : 'PDF', a.sz ? fa(a.sz) + ' مگابایت' : '', [a.p, a.y && fa(a.y)].filter(Boolean).join('، '), a.d ? fa(a.d) : ''].filter(Boolean).join(' · ');
             return '<div class="row"><div class="dot">' + ICON.file + '</div><div class="grow"><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="nm">' + esc(ch.name || 'کانال') + '</span>' +
-              (diff ? '<span class="badge warn">چاپ دیگر</span>' : '') + (same ? '<span class="badge">همان کانال</span>' : '') + '</div><span class="sub">' + esc(m) + '</span></div>' +
+              (aw ? '<span class="badge">کتابخانهٔ آنلاین</span>' : '') + (diff ? '<span class="badge warn">چاپ دیگر</span>' : '') + (same ? '<span class="badge">' + (aw ? 'همان کتابخانه' : 'همان کانال') + '</span>' : '') + '</div><span class="sub">' + esc(m) + '</span></div>' +
               '<button class="ghost-btn" data-open="' + esc(a.l || '') + '"' + (a.l ? '' : ' disabled') + ' aria-label="باز کردن نسخهٔ ' + esc(ch.name || '') + '">باز کردن' + ICON.ext + '</button></div>';
           }).join('') + '</div>' + (alts.length > 30 ? '<p class="muted px" style="margin:0;font-size:12px">و ' + fa(alts.length - 30) + ' نسخهٔ دیگر</p>' : '') + '</section>';
       }
@@ -301,7 +312,7 @@
           ['شمار صفحات', c0.pg && fa(c0.pg)], ['شابک', c0.isbn], ['موضوع', w.tag], ['زبان', w.lang]];
       }
       rec = rec.filter(function (x) { return x[1]; });
-      var label = f ? (fm === 2 ? 'فیپا · تطبیق قطعی' : fm === 1 ? 'فیپا · تطبیق محتمل' : 'فیپا · تطبیق احتمالی') : 'از کپشن کانال';
+      var label = f ? (fm === 2 ? 'فیپا · تطبیق قطعی' : fm === 1 ? 'فیپا · تطبیق محتمل' : 'فیپا · تطبیق احتمالی') : web0 ? 'از ' + (ch0.name || 'کتابخانهٔ آنلاین') : 'از کپشن کانال';
       if (rec.length) {
         h += '<section class="sec"><div class="sec-head"><h2>مشخصات کتاب‌شناختی</h2><span class="muted" style="font-size:12px">' + label + '</span></div>' +
           (f && fm === 0 ? '<div class="notice">این رکورد فقط از روی عنوان پیدا شده و ممکن است مربوط به کتاب یا چاپ دیگری باشد.</div>' : '') +
@@ -531,24 +542,26 @@
   }
   function viewChannel(i) {
     var ch = HOME.channels[+i]; if (!ch) return viewMissing();
-    viewPaged(ch.name, [ch.handle, fa(ch.n.toLocaleString('en')) + ' فایل PDF'].filter(Boolean).join(' · '), 'c/' + i, ch.w, null,
-      ch.link ? '<div class="px"><button class="primary" data-open="' + esc(ch.link) + '">' + ICON.tg + 'رفتن به کانال</button></div>' : '');
+    viewPaged(ch.name, [ch.handle, fa(ch.n.toLocaleString('en')) + (ch.web ? ' کتاب · کتابخانهٔ آنلاین (نمونه)' : ' فایل PDF')].filter(Boolean).join(' · '), 'c/' + i, ch.w, null,
+      ch.link ? '<div class="px"><button class="primary" data-open="' + esc(ch.link) + '">' + (ch.web ? ICON.ext + 'رفتن به سایت کتابخانه' : ICON.tg + 'رفتن به کانال') + '</button></div>' : '');
   }
   function viewCat(k) {
     var c = HOME.cats.filter(function (x) { return x.k === k; })[0]; if (!c) return viewMissing();
     viewPaged(c.name, k === 'x' ? 'کتاب‌هایی که ردهٔ دیویی قطعی ندارند' : 'بر پایهٔ ردهٔ دیویی فیپا', 'k/' + k, c.n, 'categories');
   }
   function viewChannels() {
-    var all = HOME.channels.map(function (c, i) { return [c, i]; }).sort(function (a, b) { return b[0].w - a[0].w; });
-    render(bar() + '<section class="sec"><div class="sec-head"><h2 style="font-size:22px">کانال‌ها</h2></div><div class="card list">' +
-      all.map(function (x) { return channelRow(x[0], x[1]); }).join('') + '</div></section>', null, true);
+    var on = onlineChans();
+    render(bar() + (on.length ? '<section class="sec"><div class="sec-head"><h2 style="font-size:22px">کتابخانه‌های آنلاین</h2></div><div class="card list">' +
+      on.map(function (x) { return channelRow(x[0], x[1]); }).join('') + '</div></section>' : '') +
+      '<section class="sec"><div class="sec-head"><h2 style="font-size:22px">کانال‌ها</h2></div><div class="card list">' +
+      tgChans().map(function (x) { return channelRow(x[0], x[1]); }).join('') + '</div></section>', null, true);
   }
   function viewCategories() {
     render('<section class="sec"><div class="sec-head"><h2 style="font-size:22px">دسته‌ها</h2></div><div class="grid">' +
       HOME.cats.map(function (c) { return '<a href="#/k/' + c.k + '"><b>' + esc(c.name) + '</b><span>' + fa(c.n.toLocaleString('en')) + ' کتاب</span></a>'; }).join('') +
       '</div><p class="muted px" style="margin:0;font-size:12px;line-height:1.8">دسته‌ها از ردهٔ دیویی و موضوع کتابخانهٔ ملی (تطبیق‌های قطعی و محتمل) ساخته شده‌اند؛ برای «ادبیات داستانی»، «شعر و دیوان» و «فقه و حقوق» از عنوان و برچسب کانال‌ها هم کمک گرفته شده است.</p></section>' +
       '<section class="sec"><div class="sec-head"><h2>کانال‌ها</h2><a href="#/channels">همه</a></div><div class="card list">' +
-      HOME.channels.map(function (c, i) { return [c, i]; }).sort(function (a, b) { return b[0].w - a[0].w; }).slice(0, 8)
+      tgChans().slice(0, 8)
         .map(function (x) { return channelRow(x[0], x[1]); }).join('') + '</div></section>', 'categories');
   }
   function viewSaved() {
