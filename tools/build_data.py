@@ -2,7 +2,10 @@
 """ساخت داده‌های تکه‌تکهٔ مینی‌اپ از فایل اکسل فهرست کتابخانه.
 
     pip install openpyxl
-    python3 tools/build_data.py catalog.xlsx data/
+    python3 tools/build_data.py catalog.xlsx [update1.xlsx ...] data/
+
+فایل‌های به‌روزرسانی به ترتیب پس از فایل اصلی خوانده می‌شوند؛ شناسهٔ کتاب‌های موجود تغییر نمی‌کند
+و پیوندهای تکراری PDF نادیده گرفته می‌شوند.
 
 خروجی (همه JSON):
   data/home.json                 آمار، کانال‌ها، دسته‌ها، تازه‌ها، پیشنهادها
@@ -92,31 +95,39 @@ def dump(path, obj):
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(obj, f, ensure_ascii=False, separators=(',', ':'))
 
-def main(src, out):
-    wb = load_workbook(src, read_only=True, data_only=True)
-    sheets = [wb[n] for n in wb.sheetnames if n.startswith('کتاب‌ها')] or [wb.worksheets[0]]
-    hdr = [s(h) for h in next(sheets[0].iter_rows(values_only=True))]
-    col = {h: i for i, h in enumerate(hdr)}
+def main(srcs, out):
+    wbs = [load_workbook(src, read_only=True, data_only=True) for src in srcs]
+    wb = wbs[-1]                                # تاریخ ساخت از تازه‌ترین فایل
+    col = {}
     def g(r, name):
         i = col.get(name)
         return s(r[i]) if i is not None and i < len(r) else ''
-    nrows = [0]
+    nrows = [0]; seen = set(); dups = [0]
     def rows_iter():
-        for ws in sheets:
-            it = ws.iter_rows(values_only=True)
-            next(it, None)                      # سرستون هر برگه
-            for r in it:
-                if r and any(v is not None for v in r):
-                    nrows[0] += 1
-                    if nrows[0] % 200000 == 0: print('  rows', nrows[0], flush=True)
-                    yield r
+        for bi, b in enumerate(wbs):
+            sheets = [b[n] for n in b.sheetnames if n.startswith('کتاب‌ها')] or [b.worksheets[0]]
+            for ws in sheets:
+                it = ws.iter_rows(values_only=True)
+                hdr = next(it, None)            # سرستون هر برگه
+                col.clear(); col.update({s(h): i for i, h in enumerate(hdr or [])})
+                for r in it:
+                    if r and any(v is not None for v in r):
+                        link = g(r, 'لینک تلگرامی PDF')
+                        if link.startswith('https://t.me/'):
+                            if bi and link in seen: dups[0] += 1; continue   # فقط برای فایل‌های به‌روزرسانی
+                            seen.add(link)
+                        nrows[0] += 1
+                        if nrows[0] % 200000 == 0: print('  rows', nrows[0], flush=True)
+                        yield r
     rows = rows_iter()
 
-    # channels
+    # channels (کانال‌های تازهٔ فایل‌های به‌روزرسانی در انتها افزوده می‌شوند)
     chans, chidx = [], {}
-    if 'کانال‌ها' in wb.sheetnames:
-        for r in list(wb['کانال‌ها'].iter_rows(values_only=True))[1:]:
+    for bi, b in enumerate(wbs):
+        if 'کانال‌ها' not in b.sheetnames: continue
+        for r in list(b['کانال‌ها'].iter_rows(values_only=True))[1:]:
             if not r or not r[1] or s(r[1]) == 'جمع کل' or r[0] is None: continue
+            if bi and s(r[1]) in chidx: continue   # فایل اصلی دست‌نخورده تا شمارهٔ کانال‌ها ثابت بماند
             chidx[s(r[1])] = len(chans)
             link = s(r[3]) if s(r[3]).startswith('https://') else ''
             chans.append({'name': s(r[1]), 'handle': s(r[2]), 'link': link, 'n': 0, 'w': 0})
@@ -167,7 +178,7 @@ def main(src, out):
                           'lang': g(r, 'زبان'), 'c': []})
         works[wid]['c'].append(copy)
 
-    print('rows', nrows[0]); print('works', len(works))
+    print('rows', nrows[0], 'dups', dups[0]); print('works', len(works))
     # main copy, category, date
     def score(c):
         return (1 if c.get('l') else 0, c.get('m', 0) if 'f' in c else -1, len(c), c.get('d', ''))
@@ -293,5 +304,5 @@ def main(src, out):
     print('qa', dict(qa))
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3: sys.exit(__doc__)
-    main(sys.argv[1], sys.argv[2])
+    if len(sys.argv) < 3: sys.exit(__doc__)
+    main(sys.argv[1:-1], sys.argv[-1])
