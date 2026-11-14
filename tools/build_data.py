@@ -94,15 +94,23 @@ def dump(path, obj):
 
 def main(src, out):
     wb = load_workbook(src, read_only=True, data_only=True)
-    ws = wb['کتاب‌ها'] if 'کتاب‌ها' in wb.sheetnames else wb.worksheets[0]
-    it = ws.iter_rows(values_only=True)
-    hdr = [s(h) for h in next(it)]
+    sheets = [wb[n] for n in wb.sheetnames if n.startswith('کتاب‌ها')] or [wb.worksheets[0]]
+    hdr = [s(h) for h in next(sheets[0].iter_rows(values_only=True))]
     col = {h: i for i, h in enumerate(hdr)}
     def g(r, name):
         i = col.get(name)
         return s(r[i]) if i is not None and i < len(r) else ''
-    rows = [r for r in it if r and any(v is not None for v in r)]
-    print('rows', len(rows))
+    nrows = [0]
+    def rows_iter():
+        for ws in sheets:
+            it = ws.iter_rows(values_only=True)
+            next(it, None)                      # سرستون هر برگه
+            for r in it:
+                if r and any(v is not None for v in r):
+                    nrows[0] += 1
+                    if nrows[0] % 200000 == 0: print('  rows', nrows[0], flush=True)
+                    yield r
+    rows = rows_iter()
 
     # channels
     chans, chidx = [], {}
@@ -159,7 +167,7 @@ def main(src, out):
                           'lang': g(r, 'زبان'), 'c': []})
         works[wid]['c'].append(copy)
 
-    print('works', len(works))
+    print('rows', nrows[0]); print('works', len(works))
     # main copy, category, date
     def score(c):
         return (1 if c.get('l') else 0, c.get('m', 0) if 'f' in c else -1, len(c), c.get('d', ''))
@@ -278,7 +286,7 @@ def main(src, out):
     cats.append({'k': 'x', 'name': 'بدون رده‌بندی', 'n': len(per_cat.get('x', []))})
     dump(f'{out}/home.json', {
         'sample': False, 'built': wb['راهنما و آمار']['B2'].value if 'راهنما و آمار' in wb.sheetnames else '',
-        'nfiles': len(rows), 'nworks': len(works), 'shard': SHARD, 'ashards': A_SHARDS, 'page': PAGE,
+        'nfiles': nrows[0], 'nworks': len(works), 'shard': SHARD, 'ashards': A_SHARDS, 'page': PAGE,
         'channels': chans, 'cats': cats, 'recent': [lite(i) for i in order[:40]],
         'featured': [lite(i) for i in featured]})
     dump(f'{out}/qa.json', {k: {'n': n, 'examples': qa_ex[k]} for k, n in qa.most_common()})

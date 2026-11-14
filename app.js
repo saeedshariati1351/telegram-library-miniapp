@@ -6,11 +6,13 @@
   var app = document.getElementById('app');
   var HOME = null;           // data/home.json
   var MANIFEST = null;       // data/s/manifest.json
-  var CV = null;             // bitmap of books with a downloaded cover (data/cv.json)
+  var CV = [];               // per cover shard: bitmap of books with a downloaded cover
   var SAVED = [];            // [lite rows]
   var cache = {};
   var VER = (window.LIB_CONFIG && window.LIB_CONFIG.dataVersion) || '1';
-  var COVERS = (window.LIB_CONFIG && window.LIB_CONFIG.coverBase) || '';
+  var CFG = window.LIB_CONFIG || {};
+  var COVER_BASES = CFG.coverBases || (CFG.coverBase ? [CFG.coverBase] : ['']);   // shard = id % COVER_BASES.length
+  var SEARCH = CFG.searchBase || 'data/';
 
   // ---------- helpers ----------
   var FA = '۰۱۲۳۴۵۶۷۸۹';
@@ -44,15 +46,16 @@
   var PALETTE = ['#7A2E2E', '#3B3561', '#2F4A3A', '#5B4A2F', '#1F4E5F', '#4A3B5C', '#6A3A4A', '#34505A', '#5A4632', '#2E3F66'];
   function colorFor(s) { var h = fnv(String(s)); return PALETTE[h % PALETTE.length]; }
 
-  function getJSON(path) {
-    if (cache[path]) return cache[path];
-    var p = fetch('data/' + path + '?v=' + VER).then(function (r) {
+  function getJSON(path, base) {
+    var url = (base || 'data/') + path;
+    if (cache[url]) return cache[url];
+    var p = fetch(url + '?v=' + VER).then(function (r) {
       if (r.status === 404) return null;
       if (!r.ok) throw new Error(r.status);
       return r.json();
     });
-    cache[path] = p;
-    p.catch(function () { delete cache[path]; });
+    cache[url] = p;
+    p.catch(function () { delete cache[url]; });
     return p;
   }
   function getWork(id) {
@@ -83,10 +86,11 @@
   function volLabel(v) { if (!v) return ''; return /^(جلد|ج\.)/.test(v) ? v : 'جلد ' + v; }
 
   // covers: downloaded cover image (covers/<id/1000>/<id>.webp) over a default colour cover
-  function hasCover(id) { return CV && id != null && id >= 0 && (CV[id >> 3] >> (id & 7)) & 1; }
+  function coverBase(id) { return COVER_BASES[id % COVER_BASES.length]; }
+  function hasCover(id) { var b = CV[id % COVER_BASES.length]; return b && id != null && id >= 0 && (b[id >> 3] >> (id & 7)) & 1; }
   function coverHTML(b, size) {
     var t = b.t, a = b.a, v = volLabel(b.v);
-    var img = hasCover(b.id) ? '<img alt="" decoding="async" src="' + COVERS + 'covers/' + Math.floor(b.id / 1000) + '/' + b.id + '.webp?v=' + VER + '" onload="this.parentNode.classList.add(\'has-img\')" onerror="this.remove()">' : '';
+    var img = hasCover(b.id) ? '<img alt="" decoding="async" src="' + coverBase(b.id) + 'covers/' + Math.floor(b.id / 1000) + '/' + b.id + '.webp?v=' + VER + '" onload="this.parentNode.classList.add(\'has-img\')" onerror="this.remove()">' : '';
     return '<div class="cover c-' + size + '" role="img" aria-label="جلد ' + esc(t) + '"><div class="fb" style="background:' + colorFor(t) + '"><i></i><b>' +
       esc(t.length > 48 ? t.slice(0, 46) + '…' : t) + '</b><small>' + esc(v ? v + (a ? ' · ' + a : '') : a) + '</small></div>' + img + '</div>';
   }
@@ -364,7 +368,7 @@
   function doSearch(q) {
     var words = norm(q).split(' ').filter(function (w) { return w.length >= 2 && !STOP[w]; });
     if (!words.length) return Promise.resolve(null);
-    return Promise.all(words.map(function (wd) { return getJSON(shardFile(shardKey(wd))); })).then(function (shards) {
+    return Promise.all(words.map(function (wd) { return getJSON(shardFile(shardKey(wd)), SEARCH); })).then(function (shards) {
       var lite = {}, sets = [];
       shards.forEach(function (sh, k) {
         var wd = words[k], ids = {};
@@ -601,9 +605,15 @@
   setupTelegram();
   // Telegram launch data arrives in the hash (#tgWebAppData=…); the SDK has already read it.
   if (!/^#\//.test(location.hash)) history.replaceState(null, '', location.pathname + location.search + '#/');
-  Promise.all([getJSON('home.json'), getJSON('s/manifest.json'), fetch(COVERS + 'cv.json?v=' + VER).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })]).then(function (r) {
+  Promise.all([getJSON('home.json'), getJSON('s/manifest.json', SEARCH),
+    Promise.all(COVER_BASES.map(function (base) {
+      return fetch(base + 'cv.json?v=' + VER).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+    }))]).then(function (r) {
     HOME = r[0]; MANIFEST = r[1] || { split: [] };
-    if (r[2] && r[2].b) { try { var bin = atob(r[2].b); CV = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) CV[i] = bin.charCodeAt(i); } catch (e) { CV = null; } }
+    CV = r[2].map(function (j) {
+      if (!j || !j.b) return null;
+      try { var bin = atob(j.b), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; } catch (e) { return null; }
+    });
     loadSaved(function () {
       var start = tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param;
       if (start && /^b\d+$/.test(start)) history.replaceState(null, '', '#/b/' + start.slice(1));
