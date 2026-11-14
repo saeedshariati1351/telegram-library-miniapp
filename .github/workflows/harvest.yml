@@ -7,34 +7,41 @@ on:
 permissions:
   contents: write
 jobs:
-  harvest:
+  plan:
     runs-on: ubuntu-latest
-    timeout-minutes: 340
+    outputs:
+      jobs: ${{ steps.p.outputs.jobs }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-          sparse-checkout: harvest
+        with: { fetch-depth: 1, sparse-checkout: harvest }
+      - id: p
+        run: echo "jobs=$(grep -v '^#' harvest/request.txt | grep -v '^\s*$' | python3 -c 'import sys,json;print(json.dumps([l.strip() for l in sys.stdin]))')" >> $GITHUB_OUTPUT
+  harvest:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 345
+    strategy:
+      fail-fast: false
+      matrix:
+        job: ${{ fromJson(needs.plan.outputs.jobs) }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1, sparse-checkout: harvest }
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - name: run
         run: |
           pip install -q requests openpyxl beautifulsoup4 lxml
           mkdir -p out
-          while read -r line; do
-            [ -z "$line" ] && continue; case "$line" in \#*) continue;; esac
-            echo "::group::$line"
-            (cd harvest && timeout 300m python3 $line) 2>&1 | tail -200 || echo "FAILED: $line"
-            echo "::endgroup::"
-          done < harvest/request.txt
+          (cd harvest && timeout 330m python3 ${{ matrix.job }}) > out/_stdout.txt 2>&1 || echo "exit $?" >> out/_stdout.txt
           ls -la out
-      - name: push results to branch harvest-data
+      - name: push results
         if: always()
         run: |
           cd out
-          git init -q -b harvest-data
+          git init -q -b out
           git config user.name "library-bot"; git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}"
-          git fetch -q --depth 1 origin harvest-data && git reset -q --soft FETCH_HEAD || true
-          git add -A; git commit -qm "harvest $(date -u +%F-%H%M)" || true
-          git push -q origin harvest-data
+          N=$(echo "${{ matrix.job }}" | sed 's/\.py.*//; s/[^A-Za-z0-9_-]/_/g')
+          git add -A; git commit -qm "harvest ${{ matrix.job }}" || true
+          git push -q -f origin HEAD:refs/heads/h-$N; echo "pushed h-$N"
