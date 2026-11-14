@@ -69,6 +69,7 @@
 
   var ICON = {
     tg: '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M21 4L3 11l6 2.5L11.5 20 15 15.5l4.5 3.5z"/><path d="M9 13.5L21 4"/></svg>',
+    web: '<svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg>',
     ext: '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
     back: '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>',
     chev: '<svg class="chev" aria-hidden="true" viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6"/></svg>',
@@ -86,6 +87,18 @@
   // online libraries (v4): a copy whose link is a web page, not a Telegram post
   function isWeb(c) { return !!(c && (c.web || (c.l && !/^https?:\/\/t\.me\//i.test(c.l)))); }
   function readLabel(c, ch) { return !c.l ? 'پیوند عمومی ندارد' : isWeb(c) ? 'خواندن در ' + (ch.name || 'کتابخانه') : 'خواندن در تلگرام'; }
+  // read buttons: Telegram copy and/or online-library copy side by side; only the online one if there is no Telegram post
+  function readButtons(w, inCard) {
+    var tg = null, web = null;
+    w.c.forEach(function (c) { if (!c.l) return; if (isWeb(c)) { if (!web) web = c; } else if (!tg) tg = c; });
+    var cls = 'primary' + (inCard ? ' in-card' : '');
+    if (!tg && !web) return '<button class="' + cls + '" disabled>' + ICON.tg + 'پیوند عمومی ندارد</button>';
+    var wch = web ? HOME.channels[web.ch] || {} : null;
+    var webBtn = web ? '<button class="' + cls + ' web" data-open="' + esc(web.l) + '" aria-label="خواندن در ' + esc(wch.name || 'کتابخانهٔ آنلاین') + '">' + ICON.web +
+      '<span>' + (tg ? esc(wch.name || 'کتابخانهٔ آنلاین') : 'خواندن در ' + esc(wch.name || 'کتابخانهٔ آنلاین')) + '</span></button>' : '';
+    var tgBtn = tg ? '<button class="' + cls + '" data-open="' + esc(tg.l) + '">' + ICON.tg + 'خواندن در تلگرام</button>' : '';
+    return tg && web ? '<div class="read-row">' + tgBtn + webBtn + '</div>' : (tgBtn || webBtn);
+  }
   function webCover(w) { for (var i = 0; i < w.c.length; i++) if (w.c[i].cu) return w.c[i].cu; return ''; }
   function onlineChans() { return HOME.channels.map(function (c, i) { return [c, i]; }).filter(function (x) { return x[0].web; }).sort(function (a, b) { return b[0].w - a[0].w; }); }
   function tgChans() { return HOME.channels.map(function (c, i) { return [c, i]; }).filter(function (x) { return !x[0].web; }).sort(function (a, b) { return b[0].w - a[0].w; }); }
@@ -251,7 +264,7 @@
       (w.tr ? '<dt>مترجم</dt><dd>' + peopleLinks(w.tr) + '</dd>' : '') +
       (c.p ? '<dt>ناشر</dt><dd>' + esc(c.p) + '</dd>' : '') + (c.y ? '<dt>سال</dt><dd>' + fa(c.y) + '</dd>' : '') +
       '<dt>' + (isWeb(c) ? 'کتابخانه' : 'کانال') + '</dt><dd>' + esc(ch.name || '') + '</dd></dl></div>' +
-      '<button class="primary in-card" data-open="' + esc(c.l || '') + '"' + (c.l ? '' : ' disabled') + '>' + (isWeb(c) ? ICON.ext : ICON.tg) + readLabel(c, ch) + '</button></article>';
+      readButtons(w, true) + '</article>';
   }
   function peopleLinks(s) {
     var parts = splitNames(s);
@@ -283,8 +296,7 @@
         (meta ? '<p>' + esc(meta) + '</p>' : '') + '</div>' +
         (c0.cv ? '<button class="ghost-btn" style="color:var(--gold);border-color:var(--gold)" data-open="' + esc(c0.cv === 1 ? c0.l : c0.cv) + '">' + ICON.img + 'دیدن جلد در کانال</button>' : '') +
         '</section>';
-      h += '<section class="sec px" style="gap:10px"><button class="primary" data-open="' + esc(c0.l || '') + '"' + (c0.l ? '' : ' disabled') + '>' + (web0 ? ICON.ext : ICON.tg) +
-        readLabel(c0, ch0) + '</button>' +
+      h += '<section class="sec px" style="gap:10px">' + readButtons(w) +
         '<p class="muted" style="margin:0;text-align:center;font-size:12px">' + esc([(web0 ? 'کتابخانهٔ آنلاین: ' : 'کانال اصلی: ') + (ch0.name || '—'), web0 ? (/\.pdf(\?|$)/i.test(c0.l || '') ? 'PDF' : 'نسخهٔ وب') : 'PDF', c0.sz ? fa(c0.sz) + ' مگابایت' : '', c0.d ? fa(c0.d) : ''].filter(Boolean).join(' · ')) + '</p>' +
         (c0.note ? '<p class="muted" style="margin:0;text-align:center;font-size:12px;line-height:1.8">' + esc(c0.note) + '</p>' : '') + '</section>';
       var alts = w.c.slice(1);

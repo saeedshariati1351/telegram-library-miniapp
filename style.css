@@ -144,3 +144,13 @@ dl.rec dt{flex:0 0 112px;color:var(--muted)} dl.rec dd{margin:0;flex:1;min-width
 .adv-actions{display:flex;gap:10px}
 .adv-actions .primary{flex:1}
 .adv-actions .ghost-btn{height:46px}
+
+/* v4: Telegram + online-library read buttons side by side */
+.read-row{display:flex;gap:10px;width:100%}
+.read-row .primary{flex:1.35;min-width:0}
+.read-row .primary.web{flex:1}
+.primary.web{background:var(--surface);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--gold)}
+.primary.web svg{stroke:var(--gold)}
+.primary.in-card.web{background:var(--chip);color:var(--ink);box-shadow:none}
+.primary.in-card.web svg{stroke:var(--accent)}
+.primary.web span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
