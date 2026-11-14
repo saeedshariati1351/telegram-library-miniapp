@@ -1,10 +1,7 @@
-h_shamela.py
-h_waqf.py
-h_kadhim.py
-h_ketabnak.py
-h_safahat.py
-h_ghaem.py
-h_iweb.py
-h_archive.py
-h_misc.py
-h_small.py
+# round 3
+h3_ghaem.py
+h3_shamela.py
+h3_safahat.py
+h3_small.py
+h3_world.py
+h3_probe.py
